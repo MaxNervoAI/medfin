@@ -106,14 +106,17 @@ export default function DashboardClient({ nombre, prestaciones }: Props) {
         <p className="text-slate-500 text-sm capitalize">{nombreMes}</p>
       </div>
 
-      {/* Gráfico de ingresos próximos 9 meses */}
+      {/* Gráfico de ingresos: 3 meses atrás + actual + 3 meses adelante */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 mb-6">
         <h2 className="text-sm font-semibold text-slate-700 mb-4">Proyección de ingresos</h2>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 20 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
             <XAxis dataKey="mes" tick={{ fill: '#64748b', fontSize: 12 }} />
-            <YAxis tick={{ fill: '#64748b', fontSize: 12 }} />
+            <YAxis
+              tick={{ fill: '#64748b', fontSize: 11 }}
+              tickFormatter={(value: number) => `$${(value / 1000000).toFixed(1)}M`}
+            />
             <Tooltip
               contentStyle={{
                 backgroundColor: '#fff',
