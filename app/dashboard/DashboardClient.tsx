@@ -5,7 +5,7 @@ import { generarAlertas, formatMonto, getNombreMes, getMesActual, calcularIngres
 import type { Prestacion, Alerta } from '@/types'
 import Badge from '@/components/ui/Badge'
 import { AlertTriangle, Clock, TrendingUp, ChevronRight, Plus, Bell } from 'lucide-react'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 
 interface Props {
   nombre: string
@@ -68,7 +68,7 @@ export default function DashboardClient({ nombre, prestaciones }: Props) {
 
   // Preparar datos para Recharts: convertir estructura de ingresos por tipo a formato apto para BarChart
   const chartData = ingresosPorMes.map(mes => {
-    const obj: Record<string, any> = {
+    const obj: Record<string, string | number> = {
       mes: mes.nombre,
       mesKey: mes.mes,
       total: mes.total,
@@ -121,8 +121,6 @@ export default function DashboardClient({ nombre, prestaciones }: Props) {
                 borderRadius: '8px',
                 padding: '8px',
               }}
-              formatter={(value: any) => formatMonto(value)}
-              labelFormatter={(label: string) => `Mes: ${label}`}
             />
             <Legend wrapperStyle={{ paddingTop: '20px' }} />
             {tiposPrestacion.map((tipo, idx) => (
