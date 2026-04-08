@@ -9,8 +9,8 @@ export default async function NuevaPrestacionPage() {
   if (!user) redirect('/login')
 
   const [{ data: instituciones }, { data: reglas }] = await Promise.all([
-    supabase.from('instituciones').select('id, nombre').eq('activa', true).order('nombre'),
-    supabase.from('reglas_plazo').select('*'),
+    supabase.from('instituciones').select('id, nombre').eq('user_id', user.id).order('nombre'),
+    supabase.from('reglas_plazo').select('*').eq('user_id', user.id),
   ])
 
   return (

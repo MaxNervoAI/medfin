@@ -22,6 +22,7 @@ export default async function DashboardPage() {
   const { data: prestaciones } = await supabase
     .from('prestaciones')
     .select('*')
+    .eq('user_id', user.id)
     .or(`estado.neq.pagada,and(estado.eq.pagada,fecha_pago_recibido.gte.${inicioMesStr})`)
     .order('fecha_prestacion', { ascending: false })
 

@@ -12,10 +12,12 @@ export default async function InstitucionesPage() {
     supabase
       .from('instituciones')
       .select('*')
+      .eq('user_id', user.id)
       .order('nombre'),
     supabase
       .from('reglas_plazo')
       .select('*')
+      .eq('user_id', user.id)
       .order('tipo_prestacion_nombre'),
   ])
 

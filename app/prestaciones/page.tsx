@@ -11,6 +11,7 @@ export default async function PrestacionesPage() {
   const { data: prestaciones } = await supabase
     .from('prestaciones')
     .select('*')
+    .eq('user_id', user.id)
     .order('fecha_prestacion', { ascending: false })
     .limit(100)
 

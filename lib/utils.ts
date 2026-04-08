@@ -9,11 +9,11 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatMonto(monto: number): string {
-  return new Intl.NumberFormat('es-CL', {
-    style: 'currency',
-    currency: 'CLP',
-    maximumFractionDigits: 0,
-  }).format(monto)
+  // Formato chileno: $1.000.000 (puntos como separador de miles, sin decimales)
+  const numero = Math.round(monto)
+    .toLocaleString('es-CL')
+    .replace(/\./g, '.')
+  return `$${numero}`
 }
 
 export function formatFecha(fecha: string): string {

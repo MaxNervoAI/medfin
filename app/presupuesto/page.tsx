@@ -16,6 +16,7 @@ export default async function PresupuestoPage() {
   const { data: prestaciones } = await supabase
     .from('prestaciones')
     .select('*')
+    .eq('user_id', user.id)
     .gte('fecha_prestacion', seisMesesAtras.toISOString().split('T')[0])
     .order('fecha_prestacion', { ascending: false })
 
