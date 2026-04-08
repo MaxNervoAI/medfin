@@ -108,7 +108,7 @@ export default function DashboardClient({ nombre, prestaciones }: Props) {
 
       {/* Gráfico de ingresos próximos 9 meses */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 mb-6">
-        <h2 className="text-sm font-semibold text-slate-700 mb-4">Proyección de ingresos (próximos 9 meses)</h2>
+        <h2 className="text-sm font-semibold text-slate-700 mb-4">Proyección de ingresos</h2>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 20 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
@@ -120,7 +120,12 @@ export default function DashboardClient({ nombre, prestaciones }: Props) {
                 border: '1px solid #e2e8f0',
                 borderRadius: '8px',
                 padding: '8px',
+                fontSize: '13px',
               }}
+              formatter={(value, name) => [
+                `$${Math.round(Number(value)).toLocaleString('es-CL')}`,
+                name as string
+              ]}
             />
             <Legend wrapperStyle={{ paddingTop: '20px' }} />
             {tiposPrestacion.map((tipo, idx) => (
@@ -129,7 +134,7 @@ export default function DashboardClient({ nombre, prestaciones }: Props) {
                 dataKey={tipo}
                 stackId="stack"
                 fill={getColor(tipo, idx)}
-                radius={idx === 0 ? [8, 8, 0, 0] : idx === tiposPrestacion.length - 1 ? [0, 0, 8, 8] : [0, 0, 0, 0]}
+                radius={idx === tiposPrestacion.length - 1 ? [6, 6, 0, 0] : [0, 0, 0, 0]}
               />
             ))}
           </BarChart>

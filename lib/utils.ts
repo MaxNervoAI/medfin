@@ -130,7 +130,7 @@ export function calcularIngresosPorMes(prestaciones: Prestacion[]) {
   const mesActual = getMesActual()
   const [year, month] = mesActual.split('-').map(Number)
 
-  // Generar rango de 9 meses: 3 anteriores + actual + 5 siguientes
+  // Generar rango de 7 meses: 3 anteriores + actual + 3 siguientes
   const meses: Array<{
     mes: string
     nombre: string
@@ -138,7 +138,7 @@ export function calcularIngresosPorMes(prestaciones: Prestacion[]) {
     total: number
   }> = []
 
-  for (let i = -3; i <= 5; i++) {
+  for (let i = -3; i <= 3; i++) {
     let m = month + i
     let y = year
 
