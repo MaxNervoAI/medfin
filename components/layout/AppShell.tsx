@@ -68,7 +68,7 @@ export default function AppShell({ children, nombre }: { children: React.ReactNo
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shrink-0">
               <span className="text-white font-bold text-sm">M</span>
             </div>
-            <span className="font-bold text-slate-800 text-lg">Medfin</span>
+            <span className="font-bold text-blue-700 text-lg tracking-tight">Medfin</span>
           </div>
           <button onClick={() => setSidebarOpen(false)} className="lg:hidden text-slate-400 hover:text-slate-600">
             <X size={18} />
