@@ -102,12 +102,12 @@ export default function DashboardClient({ nombre, prestaciones }: Props) {
     <div>
       {/* Saludo */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-900">Hola, {primerNombre}</h1>
-        <p className="text-slate-500 text-sm capitalize">{nombreMes}</p>
+        <p className="text-xs text-slate-400 uppercase tracking-widest font-semibold mb-1 capitalize">{nombreMes}</p>
+        <h1 className="text-2xl font-bold text-slate-800">Hola, {primerNombre} 👋</h1>
       </div>
 
       {/* Gráfico de ingresos: 3 meses atrás + actual + 3 meses adelante */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 mb-6">
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 mb-6">
         <h2 className="text-sm font-semibold text-slate-700 mb-4">Proyección de ingresos</h2>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 20 }}>
@@ -146,26 +146,30 @@ export default function DashboardClient({ nombre, prestaciones }: Props) {
       </div>
 
       {/* Tarjetas resumen */}
-      <div className="grid grid-cols-2 gap-3 mb-6">
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
-          <p className="text-xs text-slate-400 mb-1">Por cobrar (neto)</p>
-          <p className="text-xl font-bold text-slate-900">{formatMonto(totalEsperado)}</p>
-          <p className="text-xs text-slate-400 mt-1">{boletaEmitida + sinBoleta} prestaciones</p>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+          <p className="text-xs text-slate-400 font-medium mb-3">Por cobrar</p>
+          <p className="text-2xl font-bold text-slate-800">{formatMonto(totalEsperado)}</p>
+          <p className="text-xs text-slate-400 mt-2">{boletaEmitida + sinBoleta} prestaciones</p>
+          <div className="mt-3 h-1 bg-slate-100 rounded-full"><div className="h-1 bg-blue-500 rounded-full" style={{ width: '60%' }} /></div>
         </div>
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
-          <p className="text-xs text-slate-400 mb-1">Cobrado este mes</p>
-          <p className="text-xl font-bold text-green-600">{formatMonto(totalCobrado)}</p>
-          <p className="text-xs text-slate-400 mt-1">neto recibido</p>
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+          <p className="text-xs text-slate-400 font-medium mb-3">Cobrado este mes</p>
+          <p className="text-2xl font-bold text-green-600">{formatMonto(totalCobrado)}</p>
+          <p className="text-xs text-slate-400 mt-2">neto recibido</p>
+          <div className="mt-3 h-1 bg-slate-100 rounded-full"><div className="h-1 bg-green-500 rounded-full" style={{ width: '80%' }} /></div>
         </div>
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
-          <p className="text-xs text-slate-400 mb-1">Sin boleta</p>
-          <p className="text-xl font-bold text-amber-500">{sinBoleta}</p>
-          <p className="text-xs text-slate-400 mt-1">pendientes de emitir</p>
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+          <p className="text-xs text-slate-400 font-medium mb-3">Sin boleta</p>
+          <p className="text-2xl font-bold text-amber-500">{sinBoleta}</p>
+          <p className="text-xs text-slate-400 mt-2">pendientes de emitir</p>
+          <div className="mt-3 h-1 bg-slate-100 rounded-full"><div className="h-1 bg-amber-400 rounded-full" style={{ width: `${Math.min((sinBoleta / 10) * 100, 100)}%` }} /></div>
         </div>
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
-          <p className="text-xs text-slate-400 mb-1">Boleta emitida</p>
-          <p className="text-xl font-bold text-blue-500">{boletaEmitida}</p>
-          <p className="text-xs text-slate-400 mt-1">esperando pago</p>
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+          <p className="text-xs text-slate-400 font-medium mb-3">Boleta emitida</p>
+          <p className="text-2xl font-bold text-blue-500">{boletaEmitida}</p>
+          <p className="text-xs text-slate-400 mt-2">esperando pago</p>
+          <div className="mt-3 h-1 bg-slate-100 rounded-full"><div className="h-1 bg-blue-400 rounded-full" style={{ width: `${Math.min((boletaEmitida / 10) * 100, 100)}%` }} /></div>
         </div>
       </div>
 

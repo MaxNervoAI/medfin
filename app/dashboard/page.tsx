@@ -26,10 +26,12 @@ export default async function DashboardPage() {
     .or(`estado.neq.pagada,and(estado.eq.pagada,fecha_pago_recibido.gte.${inicioMesStr})`)
     .order('fecha_prestacion', { ascending: false })
 
+  const nombre = profile?.nombre ?? user.email ?? 'Doctor'
+
   return (
-    <AppShell>
+    <AppShell nombre={nombre}>
       <DashboardClient
-        nombre={profile?.nombre ?? user.email ?? 'Doctor'}
+        nombre={nombre}
         prestaciones={prestaciones ?? []}
       />
     </AppShell>
