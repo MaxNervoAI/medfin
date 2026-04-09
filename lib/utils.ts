@@ -9,10 +9,10 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatMonto(monto: number): string {
-  // Formato chileno: $1.000.000 (puntos como separador de miles, sin decimales)
+  // Formato chileno manual: $1.000.000 (no depende de locale del servidor)
   const numero = Math.round(monto)
-    .toLocaleString('es-CL')
-    .replace(/\./g, '.')
+    .toString()
+    .replace(/\B(?=(\d{3})+(?!\d))/g, '.')
   return `$${numero}`
 }
 

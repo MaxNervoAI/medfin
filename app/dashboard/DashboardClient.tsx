@@ -115,7 +115,7 @@ export default function DashboardClient({ nombre, prestaciones }: Props) {
             <XAxis dataKey="mes" tick={{ fill: '#64748b', fontSize: 12 }} />
             <YAxis
               tick={{ fill: '#64748b', fontSize: 11 }}
-              tickFormatter={(value: number) => `$${(value / 1000000).toFixed(1)}M`}
+              tickFormatter={(value: number) => value === 0 ? '$0' : `$${Math.round(value / 1000)}k`}
             />
             <Tooltip
               contentStyle={{
@@ -126,7 +126,7 @@ export default function DashboardClient({ nombre, prestaciones }: Props) {
                 fontSize: '13px',
               }}
               formatter={(value, name) => [
-                `$${Math.round(Number(value)).toLocaleString('es-CL')}`,
+                formatMonto(Number(value)),
                 name as string
               ]}
             />
