@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { LayoutDashboard, FileText, Building2, PieChart, LogOut, Menu, X, Search, Bell, Sliders, Sprout, Plus, Download } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 
 const navItems = [
   { href: '/dashboard',     label: 'Dashboard',   icon: LayoutDashboard },
@@ -36,7 +36,6 @@ export default function AppShell({ children, nombre }: { children: React.ReactNo
   const iniciales = nombre
     ? nombre.split(' ').map((n: string) => n[0]).slice(0, 2).join('').toUpperCase()
     : 'DR'
-  const primerNombre = nombre?.split(' ')[0] ?? 'Doctor'
   const primerApellido = nombre?.split(' ')[1] ?? 'Rueda'
 
   async function cerrarSesion() {
@@ -59,7 +58,7 @@ export default function AppShell({ children, nombre }: { children: React.ReactNo
         if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
           e.preventDefault()
         }
-        if (e.key === 'n' && !['INPUT', 'TEXTAREA'].includes((document.activeElement as any)?.tagName)) {
+        if (e.key === 'n' && !['INPUT', 'TEXTAREA'].includes((document.activeElement as HTMLElement)?.tagName)) {
           e.preventDefault()
           router.push('/prestaciones/nueva')
         }

@@ -287,7 +287,7 @@ export default function InstitucionesClient({ instituciones: init, reglas: initR
                 {/* Reglas de plazo */}
                 {expanded && (
                   <div style={{ borderTop: '1px solid var(--line)', padding: '0 16px 16px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingY: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 0' }}>
                       <p style={{ fontSize: '14px', fontWeight: 600, color: 'var(--ink-2)', margin: 0 }}>
                         Reglas de plazo
                       </p>

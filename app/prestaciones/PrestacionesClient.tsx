@@ -8,7 +8,6 @@ import { createClient } from '@/lib/supabase/client'
 import { formatMonto, formatFechaCorta, diasHasta } from '@/lib/utils'
 import type { Prestacion, EstadoPrestacion } from '@/types'
 import Badge from '@/components/ui/Badge'
-import Button from '@/components/ui/Button'
 import PrestacionDetalle from './PrestacionDetalle'
 
 const FILTROS: { value: EstadoPrestacion | 'todas'; label: string }[] = [

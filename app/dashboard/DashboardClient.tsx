@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { generarAlertas, formatMonto, getNombreMes, getMesActual } from '@/lib/utils'
+import { generarAlertas, formatMonto, getMesActual } from '@/lib/utils'
 import type { Prestacion, Alerta } from '@/types'
 import { ArrowRight } from 'lucide-react'
 
@@ -186,7 +186,6 @@ function Stat({ eyebrow, value, sub, accent }: { eyebrow: string; value: string;
 export default function DashboardClient({ nombre, prestaciones }: Props) {
   const today = new Date()
   const mesActual = getMesActual()
-  const nombreMes = getNombreMes(mesActual)
   const alertas = generarAlertas(prestaciones)
 
   const porCobrar = prestaciones
