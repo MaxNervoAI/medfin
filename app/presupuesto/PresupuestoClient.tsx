@@ -51,101 +51,204 @@ export default function PresupuestoClient({ prestaciones }: Props) {
   return (
     <div>
       {/* Header con navegación de meses */}
-      <div className="flex items-center justify-between mb-6">
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
         <div>
-          <h1 className="text-xl font-bold text-slate-900">Presupuesto</h1>
-          <p className="text-sm text-slate-500">Proyección de ingresos</p>
+          <h1 style={{ fontSize: '20px', fontWeight: 'bold', color: 'var(--ink)', margin: 0 }}>
+            Presupuesto
+          </h1>
+          <p style={{ fontSize: '14px', color: 'var(--ink-3)', marginTop: '4px', margin: 0 }}>
+            Proyección de ingresos
+          </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <button
             onClick={() => setMesIdx(i => Math.min(i + 1, meses.length - 1))}
             disabled={mesIdx >= meses.length - 1}
-            className="p-2 hover:bg-slate-100 rounded-xl disabled:opacity-30 transition-colors"
+            style={{
+              padding: '8px',
+              cursor: mesIdx >= meses.length - 1 ? 'not-allowed' : 'pointer',
+              borderRadius: '12px',
+              opacity: mesIdx >= meses.length - 1 ? 0.3 : 1,
+              transition: 'all 0.15s',
+            }}
+            onMouseEnter={(e) => {
+              if (mesIdx < meses.length - 1) {
+                (e.currentTarget).style.background = 'var(--bg)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget).style.background = 'transparent';
+            }}
           >
-            <ChevronLeft size={18} className="text-slate-600" />
+            <ChevronLeft size={18} style={{ color: 'var(--ink-2)' }} />
           </button>
-          <span className="text-sm font-semibold text-slate-700 capitalize min-w-[110px] text-center">
+          <span style={{
+            fontSize: '14px',
+            fontWeight: 600,
+            color: 'var(--ink-2)',
+            textTransform: 'capitalize',
+            minWidth: '110px',
+            textAlign: 'center',
+          }}>
             {getNombreMes(mesSeleccionado).split(' ')[0]}
           </span>
           <button
             onClick={() => setMesIdx(i => Math.max(i - 1, 0))}
             disabled={mesIdx <= 0}
-            className="p-2 hover:bg-slate-100 rounded-xl disabled:opacity-30 transition-colors"
+            style={{
+              padding: '8px',
+              cursor: mesIdx <= 0 ? 'not-allowed' : 'pointer',
+              borderRadius: '12px',
+              opacity: mesIdx <= 0 ? 0.3 : 1,
+              transition: 'all 0.15s',
+            }}
+            onMouseEnter={(e) => {
+              if (mesIdx > 0) {
+                (e.currentTarget).style.background = 'var(--bg)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget).style.background = 'transparent';
+            }}
           >
-            <ChevronRight size={18} className="text-slate-600" />
+            <ChevronRight size={18} style={{ color: 'var(--ink-2)' }} />
           </button>
         </div>
       </div>
 
       {delMes.length === 0 ? (
-        <div className="text-center py-16 text-slate-400">
-          <p className="font-medium">Sin prestaciones este mes</p>
-          <p className="text-sm">Registra prestaciones para ver la proyección</p>
+        <div style={{ textAlign: 'center', paddingTop: '64px', paddingBottom: '64px', color: 'var(--ink-3)' }}>
+          <p style={{ fontWeight: 500, margin: '0 0 8px 0' }}>Sin prestaciones este mes</p>
+          <p style={{ fontSize: '14px', margin: '0' }}>Registra prestaciones para ver la proyección</p>
         </div>
       ) : (
         <>
           {/* Tarjeta principal */}
-          <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl p-5 text-white mb-5 shadow-sm">
-            <p className="text-blue-100 text-sm mb-1">Total esperado (neto)</p>
-            <p className="text-3xl font-bold mb-4">{formatMonto(proyeccion.totalNeto)}</p>
+          <div style={{
+            background: `linear-gradient(135deg, var(--accent), var(--accent-strong))`,
+            borderRadius: 'var(--radius-lg)',
+            padding: '20px',
+            color: '#fff',
+            marginBottom: '20px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+          }}>
+            <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '14px', margin: '0 0 4px 0' }}>
+              Total esperado (neto)
+            </p>
+            <p style={{ fontSize: '28px', fontWeight: 'bold', margin: '0 0 16px 0' }}>
+              {formatMonto(proyeccion.totalNeto)}
+            </p>
 
             {/* Barra de progreso */}
-            <div className="bg-blue-500/40 rounded-full h-2.5 mb-2">
+            <div style={{
+              background: 'rgba(255,255,255,0.2)',
+              borderRadius: '999px',
+              height: '10px',
+              marginBottom: '8px',
+            }}>
               <div
-                className="bg-white rounded-full h-2.5 transition-all"
-                style={{ width: `${Math.min(pctCobrado, 100)}%` }}
+                style={{
+                  background: '#fff',
+                  borderRadius: '999px',
+                  height: '10px',
+                  transition: 'all 0.3s',
+                  width: `${Math.min(pctCobrado, 100)}%`,
+                }}
               />
             </div>
-            <div className="flex justify-between text-xs text-blue-100">
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'rgba(255,255,255,0.8)' }}>
               <span>Cobrado: {formatMonto(proyeccion.pagado)}</span>
               <span>{Math.round(pctCobrado)}%</span>
             </div>
           </div>
 
           {/* Cards secundarias */}
-          <div className="grid grid-cols-2 gap-3 mb-5">
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
-              <p className="text-xs text-slate-400 mb-1">Monto bruto</p>
-              <p className="text-lg font-bold text-slate-900">{formatMonto(proyeccion.totalBruto)}</p>
-              <p className="text-xs text-slate-400">{delMes.length} prestaciones</p>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: '12px',
+            marginBottom: '20px',
+          }}>
+            <div className="card" style={{ padding: '16px' }}>
+              <p className="eyebrow" style={{ marginBottom: '8px' }}>Monto bruto</p>
+              <p style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--ink)', margin: '0' }}>
+                {formatMonto(proyeccion.totalBruto)}
+              </p>
+              <p style={{ fontSize: '12px', color: 'var(--ink-3)', margin: '4px 0 0 0' }}>
+                {delMes.length} prestaciones
+              </p>
             </div>
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
-              <p className="text-xs text-slate-400 mb-1">Pendiente de cobrar</p>
-              <p className="text-lg font-bold text-amber-600">{formatMonto(proyeccion.pendiente)}</p>
-              <p className="text-xs text-slate-400">{delMes.filter(p => p.estado !== 'pagada').length} prestaciones</p>
+            <div className="card" style={{ padding: '16px' }}>
+              <p className="eyebrow" style={{ marginBottom: '8px' }}>Pendiente de cobrar</p>
+              <p style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--amber)', margin: '0' }}>
+                {formatMonto(proyeccion.pendiente)}
+              </p>
+              <p style={{ fontSize: '12px', color: 'var(--ink-3)', margin: '4px 0 0 0' }}>
+                {delMes.filter(p => p.estado !== 'pagada').length} prestaciones
+              </p>
             </div>
           </div>
 
           {/* Cobros recibidos en el mes */}
-          <div className="bg-white rounded-2xl border border-green-200 shadow-sm p-4 mb-5">
-            <p className="text-xs text-green-600 font-medium mb-1">Dinero recibido en {getNombreMes(mesSeleccionado).split(' ')[0]}</p>
-            <p className="text-2xl font-bold text-green-600">{formatMonto(cobradoEnMes)}</p>
-            <p className="text-xs text-slate-400 mt-1">{pagadasDelMes.length} pagos ingresados a tu cuenta</p>
+          <div style={{
+            background: 'var(--surface)',
+            borderRadius: 'var(--radius-lg)',
+            border: '1px solid var(--green)',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+            padding: '16px',
+            marginBottom: '20px',
+          }}>
+            <p style={{ fontSize: '12px', color: 'var(--green)', fontWeight: 600, margin: '0 0 4px 0' }}>
+              Dinero recibido en {getNombreMes(mesSeleccionado).split(' ')[0]}
+            </p>
+            <p style={{ fontSize: '24px', fontWeight: 'bold', color: 'var(--green)', margin: '0 0 4px 0' }}>
+              {formatMonto(cobradoEnMes)}
+            </p>
+            <p style={{ fontSize: '12px', color: 'var(--ink-3)', margin: 0 }}>
+              {pagadasDelMes.length} pagos ingresados a tu cuenta
+            </p>
           </div>
 
           {/* Desglose por institución */}
           {instEntries.length > 0 && (
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
-              <h2 className="text-sm font-semibold text-slate-700 mb-4">Por institución</h2>
-              <div className="flex flex-col gap-3">
+            <div className="card" style={{ padding: '16px' }}>
+              <h2 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--ink-2)', marginBottom: '16px', margin: 0 }}>
+                Por institución
+              </h2>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {instEntries.map(([nombre, datos]) => {
                   const pct = proyeccion.totalBruto > 0 ? (datos.bruto / proyeccion.totalBruto) * 100 : 0
                   return (
                     <div key={nombre}>
-                      <div className="flex justify-between items-center mb-1">
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
                         <div>
-                          <p className="text-sm font-medium text-slate-700">{nombre}</p>
-                          <p className="text-xs text-slate-400">{datos.count} prestaciones</p>
+                          <p style={{ fontSize: '14px', fontWeight: 500, color: 'var(--ink-2)', margin: 0 }}>
+                            {nombre}
+                          </p>
+                          <p style={{ fontSize: '12px', color: 'var(--ink-3)', margin: '4px 0 0 0' }}>
+                            {datos.count} prestaciones
+                          </p>
                         </div>
-                        <div className="text-right">
-                          <p className="text-sm font-bold text-slate-900">{formatMonto(datos.neto)}</p>
-                          <p className="text-xs text-slate-400">neto</p>
+                        <div style={{ textAlign: 'right' }}>
+                          <p style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--ink)', margin: 0 }}>
+                            {formatMonto(datos.neto)}
+                          </p>
+                          <p style={{ fontSize: '12px', color: 'var(--ink-3)', margin: '4px 0 0 0' }}>neto</p>
                         </div>
                       </div>
-                      <div className="bg-slate-100 rounded-full h-1.5">
+                      <div style={{
+                        background: 'var(--bg)',
+                        borderRadius: '999px',
+                        height: '6px',
+                      }}>
                         <div
-                          className="bg-blue-500 rounded-full h-1.5 transition-all"
-                          style={{ width: `${pct}%` }}
+                          style={{
+                            background: 'var(--ink)',
+                            borderRadius: '999px',
+                            height: '6px',
+                            transition: 'all 0.3s',
+                            width: `${pct}%`,
+                          }}
                         />
                       </div>
                     </div>

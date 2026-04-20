@@ -102,27 +102,40 @@ export default function PrestacionesClient({ prestaciones: init }: { prestacione
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-5">
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
         <div>
-          <h1 className="text-xl font-bold text-slate-900">Cobranzas</h1>
-          <p className="text-sm text-slate-500">{prestaciones.length} prestaciones registradas</p>
+          <h1 style={{ fontSize: '20px', fontWeight: 'bold', color: 'var(--ink)', margin: 0 }}>
+            Cobranzas
+          </h1>
+          <p style={{ fontSize: '14px', color: 'var(--ink-3)', marginTop: '4px', margin: 0 }}>
+            {prestaciones.length} prestaciones registradas
+          </p>
         </div>
         <Link href="/prestaciones/nueva">
-          <Button size="sm"><Plus size={16} /> Nueva</Button>
+          <button className="btn btn-primary btn-sm">
+            <Plus size={16} /> Nueva
+          </button>
         </Link>
       </div>
 
       {/* Filtros */}
-      <div className="flex gap-2 mb-5 overflow-x-auto pb-1">
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', overflowX: 'auto', paddingBottom: '4px' }}>
         {FILTROS.map(f => (
           <button
             key={f.value}
             onClick={() => setFiltro(f.value)}
-            className={`px-3.5 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-              filtro === f.value
-                ? 'bg-blue-600 text-white'
-                : 'bg-white border border-slate-200 text-slate-600 hover:border-blue-300'
-            }`}
+            style={{
+              padding: '6px 14px',
+              borderRadius: '999px',
+              fontSize: '14px',
+              fontWeight: 500,
+              whiteSpace: 'nowrap',
+              transition: 'all 0.15s',
+              border: filtro === f.value ? '1px solid transparent' : '1px solid var(--line-2)',
+              background: filtro === f.value ? 'var(--ink)' : 'var(--surface)',
+              color: filtro === f.value ? '#fff' : 'var(--ink-2)',
+              cursor: 'pointer',
+            }}
           >
             {f.label}
           </button>
@@ -131,51 +144,87 @@ export default function PrestacionesClient({ prestaciones: init }: { prestacione
 
       {/* Lista */}
       {filtradas.length === 0 ? (
-        <div className="text-center py-16 text-slate-400">
-          <FileText size={40} className="mx-auto mb-3 opacity-30" />
-          <p className="font-medium">Sin prestaciones</p>
-          <p className="text-sm">Registra tu primera prestación</p>
+        <div style={{ textAlign: 'center', paddingTop: '64px', paddingBottom: '64px', color: 'var(--ink-3)' }}>
+          <FileText size={40} style={{ margin: '0 auto 12px', opacity: 0.3 }} />
+          <p style={{ fontWeight: 500, margin: '8px 0 0 0' }}>Sin prestaciones</p>
+          <p style={{ fontSize: '14px', margin: '0' }}>Registra tu primera prestación</p>
         </div>
       ) : (
-        <div className="flex flex-col gap-3">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {filtradas.map(p => (
             <button
               key={p.id}
               onClick={() => setSelected(p)}
-              className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 text-left w-full hover:border-blue-200 transition-colors active:bg-slate-50"
+              style={{
+                background: 'var(--surface)',
+                borderRadius: 'var(--radius-lg)',
+                border: '1px solid var(--line)',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+                padding: '16px',
+                textAlign: 'left',
+                width: '100%',
+                cursor: 'pointer',
+                transition: 'all 0.15s',
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget).style.borderColor = 'var(--accent)';
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget).style.borderColor = 'var(--line)';
+              }}
             >
-              <div className="flex items-start justify-between gap-3 mb-2">
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-slate-800 truncate">{p.institucion_nombre}</p>
-                  <p className="text-sm text-slate-500">{p.tipo_prestacion} · {formatFechaCorta(p.fecha_prestacion)}</p>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px', marginBottom: '8px' }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ fontWeight: 600, color: 'var(--ink)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {p.institucion_nombre}
+                  </p>
+                  <p style={{ fontSize: '14px', color: 'var(--ink-3)', margin: '4px 0 0 0' }}>
+                    {p.tipo_prestacion} · {formatFechaCorta(p.fecha_prestacion)}
+                  </p>
                 </div>
                 {estadoBadge(p)}
               </div>
-              <div className="flex items-center justify-between">
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div>
-                  <p className="text-lg font-bold text-slate-900">{formatMonto(p.monto_bruto)}</p>
-                  <p className="text-xs text-slate-400">Neto: {formatMonto(p.monto_neto)}</p>
+                  <p style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--ink)', margin: 0 }}>
+                    {formatMonto(p.monto_bruto)}
+                  </p>
+                  <p style={{ fontSize: '12px', color: 'var(--ink-3)', margin: '4px 0 0 0' }}>
+                    Neto: {formatMonto(p.monto_neto)}
+                  </p>
                 </div>
                 {p.estado === 'realizada' && p.fecha_limite_boleta && (
-                  <div className="text-right">
-                    <p className="text-xs text-slate-400">Emitir boleta</p>
-                    <p className={`text-xs font-semibold ${diasHasta(p.fecha_limite_boleta) < 0 ? 'text-red-600' : diasHasta(p.fecha_limite_boleta) <= 3 ? 'text-amber-600' : 'text-slate-600'}`}>
+                  <div style={{ textAlign: 'right' }}>
+                    <p style={{ fontSize: '12px', color: 'var(--ink-3)', margin: 0 }}>Emitir boleta</p>
+                    <p style={{
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      color: diasHasta(p.fecha_limite_boleta) < 0 ? 'var(--red)' : diasHasta(p.fecha_limite_boleta) <= 3 ? 'var(--amber)' : 'var(--ink-2)',
+                      margin: '4px 0 0 0',
+                    }}>
                       {formatFechaCorta(p.fecha_limite_boleta)}
                     </p>
                   </div>
                 )}
                 {p.estado === 'boleta_emitida' && p.fecha_limite_pago && (
-                  <div className="text-right">
-                    <p className="text-xs text-slate-400">Pago esperado</p>
-                    <p className={`text-xs font-semibold ${diasHasta(p.fecha_limite_pago) < 0 ? 'text-red-600' : 'text-slate-600'}`}>
+                  <div style={{ textAlign: 'right' }}>
+                    <p style={{ fontSize: '12px', color: 'var(--ink-3)', margin: 0 }}>Pago esperado</p>
+                    <p style={{
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      color: diasHasta(p.fecha_limite_pago) < 0 ? 'var(--red)' : 'var(--ink-2)',
+                      margin: '4px 0 0 0',
+                    }}>
                       {formatFechaCorta(p.fecha_limite_pago)}
                     </p>
                   </div>
                 )}
                 {p.estado === 'pagada' && p.fecha_pago_recibido && (
-                  <div className="text-right">
-                    <p className="text-xs text-slate-400">Pagado</p>
-                    <p className="text-xs font-semibold text-green-600">{formatFechaCorta(p.fecha_pago_recibido)}</p>
+                  <div style={{ textAlign: 'right' }}>
+                    <p style={{ fontSize: '12px', color: 'var(--ink-3)', margin: 0 }}>Pagado</p>
+                    <p style={{ fontSize: '12px', fontWeight: 600, color: 'var(--green)', margin: '4px 0 0 0' }}>
+                      {formatFechaCorta(p.fecha_pago_recibido)}
+                    </p>
                   </div>
                 )}
               </div>
