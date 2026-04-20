@@ -1,16 +1,281 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* ── Design tokens ─────────────────────────────────────────── */
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
+  --accent-h: 140;
+  --accent: oklch(0.62 0.12 var(--accent-h));
+  --accent-weak: #EBF3E7;
+  --accent-soft: #D9E8D3;
+  --accent-strong: oklch(0.38 0.10 var(--accent-h));
+
+  --bg: #F6F8F4;
+  --surface: #ffffff;
+  --ink: oklch(0.22 0.02 155);
+  --ink-2: oklch(0.42 0.015 155);
+  --ink-3: oklch(0.58 0.010 155);
+  --ink-4: oklch(0.78 0.008 155);
+  --line: oklch(0.93 0.012 145);
+  --line-2: oklch(0.88 0.018 145);
+
+  --amber: oklch(0.72 0.14 75);
+  --amber-weak: oklch(0.96 0.04 80);
+  --red: oklch(0.58 0.17 28);
+  --red-weak: oklch(0.96 0.03 28);
+  --green: oklch(0.58 0.12 160);
+  --green-weak: oklch(0.96 0.03 160);
+
+  --radius: 14px;
+  --radius-lg: 18px;
+  --radius-sm: 10px;
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Inter', -apple-system, system-ui, sans-serif;
+  font-feature-settings: 'cv11','ss01','ss03';
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+input, select, textarea {
+  font: inherit;
+  color: inherit;
+}
+
+/* Type */
+.serif {
+  font-family: 'Instrument Serif', 'Times New Roman', serif;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+.mono {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-feature-settings: 'ss02','zero';
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+.kbd {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  border: 1px solid var(--line-2);
+  border-bottom-width: 2px;
+  border-radius: 6px;
+  padding: 1px 5px;
+  color: var(--ink-2);
+  background: #fff;
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid transparent;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.btn-primary {
+  background: var(--ink);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: oklch(0.28 0.015 260);
+}
+
+.btn-ghost {
+  color: var(--ink-2);
+  border-color: var(--line-2);
+  background: #fff;
+}
+
+.btn-ghost:hover {
+  background: var(--bg);
+}
+
+.btn-accent {
+  background: var(--accent);
+  color: #fff;
+}
+
+.btn-accent:hover {
+  background: var(--accent-strong);
+}
+
+.btn-sm {
+  padding: 6px 10px;
+  font-size: 12.5px;
+}
+
+/* Cards */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+}
+
+.card-head {
+  padding: 18px 20px 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.card-head h3 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-2);
+  letter-spacing: -0.005em;
+}
+
+.card-head .meta {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--ink-3);
+}
+
+.card-body {
+  padding: 4px 20px 20px;
+}
+
+.divider {
+  height: 1px;
+  background: var(--line);
+  margin: 0;
+}
+
+/* Badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--line-2);
+  background: #fff;
+  color: var(--ink-2);
+}
+
+.badge .dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--ink-3);
+}
+
+.badge.success {
+  color: oklch(0.42 0.12 160);
+  background: var(--green-weak);
+  border-color: oklch(0.88 0.04 160);
+}
+
+.badge.success .dot {
+  background: var(--green);
+}
+
+.badge.info {
+  color: oklch(0.38 0.12 var(--accent-h));
+  background: var(--accent-weak);
+  border-color: oklch(0.88 0.05 var(--accent-h));
+}
+
+.badge.info .dot {
+  background: var(--accent);
+}
+
+.badge.warning {
+  color: oklch(0.42 0.12 75);
+  background: var(--amber-weak);
+  border-color: oklch(0.88 0.07 75);
+}
+
+.badge.warning .dot {
+  background: var(--amber);
+}
+
+.badge.danger {
+  color: oklch(0.42 0.14 28);
+  background: var(--red-weak);
+  border-color: oklch(0.88 0.08 28);
+}
+
+.badge.danger .dot {
+  background: var(--red);
+}
+
+/* Eyebrow */
+.eyebrow {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--ink-3);
+  font-weight: 600;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--line-2);
+  border-radius: 8px;
+  border: 2px solid var(--bg);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ink-4);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.screen {
+  animation: fadeIn 0.25s ease both;
+  opacity: 1;
 }
 
 /* Safe area para iPhone */

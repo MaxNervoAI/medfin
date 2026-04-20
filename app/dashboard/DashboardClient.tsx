@@ -1,232 +1,404 @@
 'use client'
 
 import Link from 'next/link'
-import { generarAlertas, formatMonto, getNombreMes, getMesActual, calcularIngresosPorMes } from '@/lib/utils'
+import { generarAlertas, formatMonto, getNombreMes, getMesActual } from '@/lib/utils'
 import type { Prestacion, Alerta } from '@/types'
-import Badge from '@/components/ui/Badge'
-import { AlertTriangle, Clock, TrendingUp, ChevronRight, Plus, Bell } from 'lucide-react'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+import { ArrowRight } from 'lucide-react'
 
 interface Props {
   nombre: string
   prestaciones: Prestacion[]
 }
 
-function AlertaCard({ alerta }: { alerta: Alerta }) {
-  const config = {
-    boleta_vencida: { color: 'border-red-200 bg-red-50', icon: AlertTriangle, iconColor: 'text-red-500', texto: 'Boleta VENCIDA', badge: 'danger' as const },
-    boleta_vence_hoy: { color: 'border-amber-200 bg-amber-50', icon: AlertTriangle, iconColor: 'text-amber-500', texto: 'Emitir boleta HOY', badge: 'warning' as const },
-    boleta_por_vencer: { color: 'border-amber-100 bg-amber-50', icon: Clock, iconColor: 'text-amber-500', texto: `Emitir en ${alerta.dias_restantes} día${alerta.dias_restantes !== 1 ? 's' : ''}`, badge: 'warning' as const },
-    pago_vencido: { color: 'border-red-200 bg-red-50', icon: AlertTriangle, iconColor: 'text-red-500', texto: 'Pago VENCIDO', badge: 'danger' as const },
-    pago_vence_hoy: { color: 'border-amber-200 bg-amber-50', icon: AlertTriangle, iconColor: 'text-amber-500', texto: 'Pago vence HOY', badge: 'warning' as const },
-  }
+function AlertaItem({ alerta, onOpen }: { alerta: Alerta; onOpen?: (p: Prestacion) => void }) {
+  const formatFecha = (d: string) => new Date(d).toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: 'numeric' })
 
-  const c = config[alerta.tipo]
-  const Icon = c.icon
+  const cfg = {
+    boleta_vencida: { tag: 'Boleta vencida', variant: 'danger' as const, meta: `hace ${Math.abs(alerta.dias_restantes)}d` },
+    boleta_vence_hoy: { tag: 'Emitir hoy', variant: 'warning' as const, meta: 'hoy' },
+    boleta_por_vencer: { tag: `Emitir en ${alerta.dias_restantes}d`, variant: 'warning' as const, meta: `en ${alerta.dias_restantes}d` },
+    pago_vencido: { tag: 'Pago vencido', variant: 'danger' as const, meta: `hace ${Math.abs(alerta.dias_restantes)}d` },
+    pago_vence_hoy: { tag: 'Pago vence hoy', variant: 'warning' as const, meta: 'hoy' },
+  }[alerta.tipo] || { tag: '', variant: 'info' as const, meta: '' }
 
   return (
-    <Link href="/prestaciones" className={`flex items-center gap-3 p-3.5 rounded-2xl border ${c.color} active:opacity-80 transition-opacity`}>
-      <div className={`shrink-0 ${c.iconColor}`}>
-        <Icon size={18} />
+    <button
+      onClick={() => onOpen?.({} as Prestacion)}
+      style={{
+        width: '100%',
+        textAlign: 'left',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '14px',
+        padding: '14px 20px',
+        borderBottom: '1px solid var(--line)',
+        background: 'transparent',
+        cursor: 'pointer',
+        fontSize: '13.5px',
+      }}
+    >
+      <div style={{
+        width: '4px',
+        alignSelf: 'stretch',
+        borderRadius: '4px',
+        background: cfg.variant === 'danger' ? 'var(--red)' : 'var(--amber)',
+      }} />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontWeight: 600, letterSpacing: '-0.01em' }}>{alerta.institucion_nombre}</div>
+        <div style={{ fontSize: '12px', color: 'var(--ink-3)', marginTop: '2px' }}>
+          {alerta.tipo_prestacion}{/* {p.paciente ? ` · ${p.paciente}` : ''} */}
+        </div>
       </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-slate-800">{alerta.institucion_nombre}</p>
-        <p className="text-xs text-slate-500">{alerta.tipo_prestacion} · {formatMonto(alerta.monto_bruto)}</p>
+      <div style={{ textAlign: 'right' }}>
+        <div className="serif num" style={{ fontSize: '18px', letterSpacing: '-0.01em' }}>
+          {formatMonto(alerta.monto_bruto)}
+        </div>
+        <div style={{ fontSize: '11px', color: 'var(--ink-3)', marginTop: '2px' }}>
+          {formatFecha(alerta.fecha_limite)}
+        </div>
       </div>
-      <Badge variant={c.badge} className="shrink-0 text-xs">{c.texto}</Badge>
-    </Link>
+      <span className={`badge ${cfg.variant}`} style={{ whiteSpace: 'nowrap' }}>
+        <span className="dot" />
+        {cfg.tag}
+      </span>
+    </button>
+  )
+}
+
+function ProyeccionChart({ prestaciones }: { prestaciones: Prestacion[] }) {
+  const today = new Date()
+  const months: Array<{ key: string; label: string; total: number; cobrado: number; proyectado: number }> = []
+  for (let i = -2; i <= 3; i++) {
+    const d = new Date(today.getFullYear(), today.getMonth() + i, 1)
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+    const label = d.toLocaleDateString('es-CL', { month: 'short' }).replace('.', '')
+    months.push({ key, label, total: 0, cobrado: 0, proyectado: 0 })
+  }
+
+  prestaciones.forEach(p => {
+    let fecha = p.fecha_pago_recibido || p.fecha_limite_pago
+    if (!fecha && p.estado === 'realizada') {
+      const base = p.fecha_limite_boleta || p.fecha_prestacion
+      if (base) {
+        const d = new Date(base)
+        d.setDate(d.getDate() + 30)
+        fecha = d.toISOString().split('T')[0]
+      }
+    }
+    if (!fecha) return
+    const key = fecha.substring(0, 7)
+    const m = months.find(x => x.key === key)
+    if (!m) return
+    m.total += p.monto_neto
+    if (p.estado === 'pagada') m.cobrado += p.monto_neto
+    else m.proyectado += p.monto_neto
+  })
+
+  const max = Math.max(...months.map(m => m.total), 1)
+  const currentKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'flex-end', gap: '14px', height: '180px', padding: '8px 4px 0' }}>
+      {months.map(m => {
+        const cobH = (m.cobrado / max) * 140
+        const proH = (m.proyectado / max) * 140
+        const isCurrent = m.key === currentKey
+        return (
+          <div key={m.key} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: '10px' }}>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', gap: '2px' }}>
+              <div style={{
+                fontSize: '10.5px',
+                color: 'var(--ink-3)',
+                textAlign: 'center',
+                fontVariantNumeric: 'tabular-nums',
+                marginBottom: '4px',
+              }}>
+                {m.total > 0 ? formatMonto(m.total / 1000).replace('$', '') + 'k' : ''}
+              </div>
+              {proH > 0 && (
+                <div style={{
+                  height: proH,
+                  background: 'var(--accent-weak)',
+                  borderTopLeftRadius: '4px',
+                  borderTopRightRadius: '4px',
+                  border: '1px dashed var(--accent)',
+                  borderBottom: 0,
+                }} />
+              )}
+              {cobH > 0 && (
+                <div style={{
+                  height: cobH,
+                  background: 'var(--ink)',
+                  borderRadius: proH > 0 ? 0 : '4px 4px 0 0',
+                }} />
+              )}
+              {m.total === 0 && (
+                <div style={{ height: '2px', background: 'var(--line)' }} />
+              )}
+            </div>
+            <div style={{
+              textAlign: 'center',
+              fontSize: '11.5px',
+              fontWeight: isCurrent ? 600 : 400,
+              color: isCurrent ? 'var(--ink)' : 'var(--ink-3)',
+              textTransform: 'capitalize',
+              paddingTop: '6px',
+              borderTop: '1px solid var(--line)',
+              position: 'relative',
+            }}>
+              {m.label}
+              {isCurrent && (
+                <div style={{
+                  position: 'absolute',
+                  top: '-1px',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  width: '24px',
+                  height: '2px',
+                  background: 'var(--ink)',
+                }} />
+              )}
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+function Stat({ eyebrow, value, sub, accent }: { eyebrow: string; value: string; sub: string; accent?: string }) {
+  return (
+    <div style={{ padding: '22px 22px 20px' }}>
+      <div className="eyebrow" style={{ marginBottom: '14px' }}>{eyebrow}</div>
+      <div className="serif num" style={{
+        fontSize: '42px',
+        lineHeight: 1,
+        letterSpacing: '-0.02em',
+        color: accent || 'var(--ink)',
+      }}>{value}</div>
+      {sub && (
+        <div style={{ fontSize: '12px', color: 'var(--ink-3)', marginTop: '10px' }}>{sub}</div>
+      )}
+    </div>
   )
 }
 
 export default function DashboardClient({ nombre, prestaciones }: Props) {
+  const today = new Date()
   const mesActual = getMesActual()
   const nombreMes = getNombreMes(mesActual)
   const alertas = generarAlertas(prestaciones)
 
-  // Resumen del mes
-  const prestacionesMes = prestaciones.filter(p => {
-    const mes = p.fecha_prestacion.substring(0, 7)
-    const mesPago = p.fecha_pago_recibido?.substring(0, 7)
-    return mes === mesActual || mesPago === mesActual
-  })
-
-  const totalEsperado = prestacionesMes
+  const porCobrar = prestaciones
     .filter(p => p.estado !== 'pagada')
-    .reduce((sum, p) => sum + p.monto_neto, 0)
+    .reduce((a, p) => a + p.monto_neto, 0)
 
-  const totalCobrado = prestaciones
+  const cobradoMes = prestaciones
     .filter(p => p.estado === 'pagada' && p.fecha_pago_recibido?.startsWith(mesActual))
-    .reduce((sum, p) => sum + p.monto_neto, 0)
+    .reduce((a, p) => a + p.monto_neto, 0)
 
   const sinBoleta = prestaciones.filter(p => p.estado === 'realizada').length
   const boletaEmitida = prestaciones.filter(p => p.estado === 'boleta_emitida').length
 
+  const monthName = today.toLocaleDateString('es-CL', { month: 'long', year: 'numeric' })
   const primerNombre = nombre.split(' ')[0]
 
-  // Ingresos por mes - para gráfico de barras apiladas
-  const ingresosPorMes = calcularIngresosPorMes(prestaciones)
-
-  // Preparar datos para Recharts: convertir estructura de ingresos por tipo a formato apto para BarChart
-  const chartData = ingresosPorMes.map(mes => {
-    const obj: Record<string, string | number> = {
-      mes: mes.nombre,
-      mesKey: mes.mes,
-      total: mes.total,
-    }
-    mes.ingresos.forEach(ing => {
-      obj[ing.tipo] = ing.monto
-    })
-    return obj
-  })
-
-  // Obtener todos los tipos de prestación únicos (para colores)
-  const tiposPrestacion: string[] = Array.from(
-    new Set(ingresosPorMes.flatMap(mes => mes.ingresos.map(ing => ing.tipo)))
-  ).sort() as string[]
-
-  // Colores para cada tipo de prestación
-  const colorPaletteMap: { [key: string]: string } = {
-    'Cirugía': '#3b82f6',     // blue
-    'Consulta': '#8b5cf6',    // violet
-    'Procedimiento': '#ec4899', // pink
-    'Turno': '#f59e0b',       // amber
-    'Endoscopia': '#10b981',  // emerald
-    'Diagnóstico': '#06b6d4', // cyan
-  }
-
-  const getColor = (tipo: string, index: number) => {
-    return colorPaletteMap[tipo] || ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#06b6d4', '#ef4444'][index % 7]
-  }
-
   return (
-    <div>
-      {/* Saludo */}
-      <div className="mb-6">
-        <p className="text-xs text-slate-400 uppercase tracking-widest font-semibold mb-1 capitalize">{nombreMes}</p>
-        <h1 className="text-2xl font-bold text-slate-800">Hola, {primerNombre} 👋</h1>
-      </div>
-
-      {/* Gráfico de ingresos: 3 meses atrás + actual + 3 meses adelante */}
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 mb-6">
-        <h2 className="text-sm font-semibold text-slate-700 mb-4">Proyección de ingresos</h2>
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 20 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-            <XAxis dataKey="mes" tick={{ fill: '#64748b', fontSize: 12 }} />
-            <YAxis
-              tick={{ fill: '#64748b', fontSize: 11 }}
-              tickFormatter={(value: number) => value === 0 ? '$0' : `$${Math.round(value / 1000)}k`}
-            />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: '#fff',
-                border: '1px solid #e2e8f0',
-                borderRadius: '8px',
-                padding: '8px',
-                fontSize: '13px',
-              }}
-              formatter={(value, name) => [
-                formatMonto(Number(value)),
-                name as string
-              ]}
-            />
-            <Legend wrapperStyle={{ paddingTop: '20px' }} />
-            {tiposPrestacion.map((tipo, idx) => (
-              <Bar
-                key={tipo}
-                dataKey={tipo}
-                stackId="stack"
-                fill={getColor(tipo, idx)}
-                radius={idx === tiposPrestacion.length - 1 ? [6, 6, 0, 0] : [0, 0, 0, 0]}
-              />
-            ))}
-          </BarChart>
-        </ResponsiveContainer>
-        <p className="text-xs text-slate-400 mt-3">Basado en fechas esperadas de pago según reglas configuradas</p>
-      </div>
-
-      {/* Tarjetas resumen */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-          <p className="text-xs text-slate-400 font-medium mb-3">Por cobrar</p>
-          <p className="text-2xl font-bold text-slate-800">{formatMonto(totalEsperado)}</p>
-          <p className="text-xs text-slate-400 mt-2">{boletaEmitida + sinBoleta} prestaciones</p>
-          <div className="mt-3 h-1 bg-slate-100 rounded-full"><div className="h-1 bg-blue-500 rounded-full" style={{ width: '60%' }} /></div>
-        </div>
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-          <p className="text-xs text-slate-400 font-medium mb-3">Cobrado este mes</p>
-          <p className="text-2xl font-bold text-green-600">{formatMonto(totalCobrado)}</p>
-          <p className="text-xs text-slate-400 mt-2">neto recibido</p>
-          <div className="mt-3 h-1 bg-slate-100 rounded-full"><div className="h-1 bg-green-500 rounded-full" style={{ width: '80%' }} /></div>
-        </div>
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-          <p className="text-xs text-slate-400 font-medium mb-3">Sin boleta</p>
-          <p className="text-2xl font-bold text-amber-500">{sinBoleta}</p>
-          <p className="text-xs text-slate-400 mt-2">pendientes de emitir</p>
-          <div className="mt-3 h-1 bg-slate-100 rounded-full"><div className="h-1 bg-amber-400 rounded-full" style={{ width: `${Math.min((sinBoleta / 10) * 100, 100)}%` }} /></div>
-        </div>
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-          <p className="text-xs text-slate-400 font-medium mb-3">Boleta emitida</p>
-          <p className="text-2xl font-bold text-blue-500">{boletaEmitida}</p>
-          <p className="text-xs text-slate-400 mt-2">esperando pago</p>
-          <div className="mt-3 h-1 bg-slate-100 rounded-full"><div className="h-1 bg-blue-400 rounded-full" style={{ width: `${Math.min((boletaEmitida / 10) * 100, 100)}%` }} /></div>
-        </div>
-      </div>
-
-
-      {/* Alertas */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <Bell size={16} className="text-slate-600" />
-            <h2 className="font-semibold text-slate-800">Alertas</h2>
-          </div>
-          {alertas.length > 0 && (
-            <span className="bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-              {alertas.length}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
+      {/* Greeting */}
+      <div style={{ display: 'flex', alignItems: 'flex-end', marginBottom: '28px', gap: '20px', flexWrap: 'wrap' }}>
+        <div style={{ flex: '1 1 320px', minWidth: 0 }}>
+          <div className="eyebrow" style={{ marginBottom: '6px' }}>{monthName}</div>
+          <h1 style={{
+            margin: 0,
+            fontFamily: "'Instrument Serif', serif",
+            fontSize: '34px',
+            letterSpacing: '-0.02em',
+            lineHeight: 1.1,
+          }}>
+            Hola, {primerNombre}. <span style={{ color: 'var(--ink-3)', fontStyle: 'italic' }}>
+              Tienes {alertas.length} asuntos por revisar.
             </span>
-          )}
+          </h1>
         </div>
-
-        {alertas.length === 0 ? (
-          <div className="bg-green-50 border border-green-100 rounded-2xl p-4 text-center">
-            <p className="text-green-700 font-medium text-sm">Todo al día</p>
-            <p className="text-green-600 text-xs mt-1">Sin alertas pendientes</p>
-          </div>
-        ) : (
-          <div className="flex flex-col gap-2">
-            {alertas.slice(0, 5).map(a => <AlertaCard key={a.id} alerta={a} />)}
-            {alertas.length > 5 && (
-              <Link href="/prestaciones" className="text-center text-sm text-blue-600 font-medium py-2">
-                Ver {alertas.length - 5} alertas más →
-              </Link>
-            )}
-          </div>
-        )}
+        <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+          <button className="btn btn-ghost">
+            📅 Este mes
+          </button>
+          <Link href="/prestaciones/nueva" className="btn btn-primary">
+            ➕ Nueva prestación
+          </Link>
+        </div>
       </div>
 
-      {/* Acceso rápido */}
-      <div className="flex flex-col gap-2">
-        <Link
-          href="/prestaciones/nueva"
-          className="flex items-center justify-between bg-blue-600 text-white rounded-2xl p-4 active:bg-blue-700 transition-colors"
-        >
-          <div className="flex items-center gap-3">
-            <Plus size={20} />
-            <span className="font-semibold">Registrar prestación</span>
+      {/* Stat grid */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+        gap: '1px',
+        background: 'var(--line)',
+        border: '1px solid var(--line)',
+        borderRadius: '18px',
+        overflow: 'hidden',
+        marginBottom: '24px',
+      }}>
+        <div style={{ background: 'var(--surface)', minWidth: 0 }}>
+          <Stat eyebrow="Por cobrar" value={formatMonto(porCobrar)} sub={`${sinBoleta + boletaEmitida} prestaciones abiertas`} />
+        </div>
+        <div style={{ background: 'var(--surface)', minWidth: 0 }}>
+          <Stat eyebrow="Cobrado este mes" value={formatMonto(cobradoMes)} sub="neto recibido" />
+        </div>
+        <div style={{ background: 'var(--surface)', minWidth: 0 }}>
+          <Stat eyebrow="Sin boleta" value={sinBoleta.toString()} sub="pendientes de emitir" accent="var(--amber)" />
+        </div>
+        <div style={{ background: 'var(--surface)', minWidth: 0 }}>
+          <Stat eyebrow="Boleta emitida" value={boletaEmitida.toString()} sub="esperando pago" accent="var(--accent-strong)" />
+        </div>
+      </div>
+
+      {/* Two-column grid */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
+        gap: '20px',
+      }}>
+        {/* Alertas */}
+        <div className="card">
+          <div className="card-head">
+            <h3>Alertas · {alertas.length}</h3>
+            <div style={{ marginLeft: 'auto' }}>
+              <Link href="/prestaciones" className="btn btn-ghost btn-sm">
+                Ver cobranzas <ArrowRight size={12} />
+              </Link>
+            </div>
           </div>
-          <ChevronRight size={18} />
-        </Link>
-        <Link
-          href="/presupuesto"
-          className="flex items-center justify-between bg-white border border-slate-200 text-slate-700 rounded-2xl p-4 active:bg-slate-50 transition-colors"
-        >
-          <div className="flex items-center gap-3">
-            <TrendingUp size={20} className="text-slate-500" />
-            <span className="font-semibold">Ver presupuesto del mes</span>
+          <div>
+            {alertas.length === 0 && (
+              <div style={{ padding: '48px 20px', textAlign: 'center', color: 'var(--ink-3)' }}>
+                <div className="serif" style={{ fontSize: '24px', color: 'var(--ink-2)', fontStyle: 'italic' }}>
+                  Todo al día
+                </div>
+                <div style={{ fontSize: '12.5px', marginTop: '6px' }}>
+                  No hay boletas ni pagos por vencer
+                </div>
+              </div>
+            )}
+            {alertas.slice(0, 6).map(a => (
+              <AlertaItem key={a.id} alerta={a} />
+            ))}
           </div>
-          <ChevronRight size={18} className="text-slate-400" />
-        </Link>
+        </div>
+
+        {/* Proyección */}
+        <div className="card">
+          <div className="card-head">
+            <h3>Proyección de ingresos</h3>
+            <span className="meta">6 meses · neto</span>
+          </div>
+          <div className="card-body">
+            <ProyeccionChart prestaciones={prestaciones} />
+            <div style={{ display: 'flex', gap: '18px', marginTop: '14px', fontSize: '11.5px', color: 'var(--ink-3)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ width: '10px', height: '10px', background: 'var(--ink)', borderRadius: '2px' }} />
+                Cobrado
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ width: '10px', height: '10px', background: 'var(--accent-weak)', border: '1px dashed var(--accent)', borderRadius: '2px' }} />
+                Proyectado
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Últimos movimientos */}
+      <div style={{ marginTop: '20px' }}>
+        <div className="card">
+          <div className="card-head">
+            <h3>Últimos movimientos</h3>
+            <div style={{ marginLeft: 'auto' }}>
+              <Link href="/prestaciones" className="btn btn-ghost btn-sm">
+                Ver todo
+              </Link>
+            </div>
+          </div>
+          <table style={{
+            width: '100%',
+            borderCollapse: 'collapse',
+            fontSize: '13px',
+          }}>
+            <thead>
+              <tr style={{
+                color: 'var(--ink-3)',
+                fontSize: '11px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.08em',
+              }}>
+                <th style={{ textAlign: 'left', padding: '10px 20px', fontWeight: 600 }}>Fecha</th>
+                <th style={{ textAlign: 'left', padding: '10px 12px', fontWeight: 600 }}>Institución</th>
+                <th style={{ textAlign: 'left', padding: '10px 12px', fontWeight: 600 }}>Prestación</th>
+                <th style={{ textAlign: 'right', padding: '10px 12px', fontWeight: 600 }}>Monto</th>
+                <th style={{ textAlign: 'left', padding: '10px 12px', fontWeight: 600 }}>Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[...prestaciones]
+                .sort((a, b) => b.fecha_prestacion.localeCompare(a.fecha_prestacion))
+                .slice(0, 5)
+                .map(p => {
+                  const estadoBadge =
+                    p.estado === 'pagada'
+                      ? 'success'
+                      : p.estado === 'boleta_emitida'
+                        ? 'info'
+                        : 'warning'
+                  return (
+                    <tr
+                      key={p.id}
+                      style={{
+                        borderTop: '1px solid var(--line)',
+                        cursor: 'pointer',
+                      }}
+                      onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg)')}
+                      onMouseLeave={e => (e.currentTarget.style.background = '')}
+                    >
+                      <td style={{
+                        padding: '12px 20px',
+                        fontVariantNumeric: 'tabular-nums',
+                        color: 'var(--ink-2)',
+                      }}>
+                        {new Date(p.fecha_prestacion).toLocaleDateString('es-CL')}
+                      </td>
+                      <td style={{ padding: '12px' }}>
+                        <b style={{ fontWeight: 500 }}>{p.institucion_nombre}</b>
+                      </td>
+                      <td style={{ padding: '12px', color: 'var(--ink-2)' }}>
+                        {p.tipo_prestacion}
+                      </td>
+                      <td style={{
+                        padding: '12px',
+                        textAlign: 'right',
+                        fontVariantNumeric: 'tabular-nums',
+                        fontSize: '16px',
+                      }}>
+                        {formatMonto(p.monto_bruto)}
+                      </td>
+                      <td style={{ padding: '12px' }}>
+                        <span className={`badge ${estadoBadge}`}>
+                          <span className="dot" />
+                          {p.estado === 'pagada'
+                            ? 'Pagada'
+                            : p.estado === 'boleta_emitida'
+                              ? 'Boleta emitida'
+                              : 'Sin boleta'}
+                        </span>
+                      </td>
+                    </tr>
+                  )
+                })}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   )

@@ -1,11 +1,9 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { LayoutDashboard, FileText, Building2, PieChart, LogOut, Menu, X, ChevronRight } from 'lucide-react'
+import { usePathname, useRouter } from 'next/navigation'
+import { LayoutDashboard, FileText, Building2, PieChart, LogOut, Menu, X, Search, Bell, Sliders, Sprout, Plus, Download } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
-import { cn } from '@/lib/utils'
 import { useState, useEffect } from 'react'
 
 const navItems = [
@@ -15,27 +13,31 @@ const navItems = [
   { href: '/presupuesto',   label: 'Presupuesto', icon: PieChart },
 ]
 
-const pageTitles: Record<string, string> = {
-  '/dashboard':     'Dashboard',
-  '/prestaciones':  'Cobranzas',
-  '/instituciones': 'Lugares de trabajo',
-  '/presupuesto':   'Presupuesto',
+const alianzasItems = [
+  { href: '/alianzas', label: 'Inversiones', icon: Sprout },
+]
+
+const pageTitles: Record<string, { title: string; crumb: string }> = {
+  '/dashboard':     { title: 'Dashboard', crumb: 'Medfin · Abril 2026' },
+  '/prestaciones':  { title: 'Cobranzas', crumb: 'Medfin · Lista y detalle' },
+  '/instituciones': { title: 'Lugares de trabajo', crumb: 'Medfin · Instituciones' },
+  '/presupuesto':   { title: 'Presupuesto', crumb: 'Medfin · Proyección' },
 }
 
 export default function AppShell({ children, nombre }: { children: React.ReactNode; nombre?: string }) {
   const pathname = usePathname()
   const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [isDesktop, setIsDesktop] = useState(false)
 
-  useEffect(() => {
-    const check = () => setIsDesktop(window.innerWidth >= 1024)
-    check()
-    window.addEventListener('resize', check)
-    return () => window.removeEventListener('resize', check)
-  }, [])
+  const pageConfig = Object.entries(pageTitles).find(([key]) =>
+    pathname === key || (key !== '/dashboard' && pathname.startsWith(key))
+  )?.[1] ?? { title: 'Medfin', crumb: 'Medfin · App' }
 
-  useEffect(() => { setSidebarOpen(false) }, [pathname])
+  const iniciales = nombre
+    ? nombre.split(' ').map((n: string) => n[0]).slice(0, 2).join('').toUpperCase()
+    : 'DR'
+  const primerNombre = nombre?.split(' ')[0] ?? 'Doctor'
+  const primerApellido = nombre?.split(' ')[1] ?? 'Rueda'
 
   async function cerrarSesion() {
     const supabase = createClient()
@@ -43,168 +45,401 @@ export default function AppShell({ children, nombre }: { children: React.ReactNo
     router.push('/login')
   }
 
-  const pageTitle = Object.entries(pageTitles).find(([key]) =>
-    pathname === key || (key !== '/dashboard' && pathname.startsWith(key))
-  )?.[1] ?? 'Medfin'
-
-  const iniciales = nombre
-    ? nombre.split(' ').map((n: string) => n[0]).slice(0, 2).join('').toUpperCase()
-    : 'DR'
-  const primerNombre = nombre?.split(' ')[0] ?? 'Doctor'
-
-  const sidebarVisible = isDesktop || sidebarOpen
+  const isActive = (href: string) => pathname === href || (href !== '/dashboard' && pathname.startsWith(href))
 
   return (
-    <div className="min-h-screen flex" style={{ backgroundColor: '#f5f7fb' }}>
-
-      {/* Overlay móvil */}
-      {sidebarOpen && !isDesktop && (
-        <div
-          className="fixed inset-0 z-30"
-          style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-      {/* ── Sidebar ── */}
-      {sidebarVisible && (
-        <aside
-          className="fixed top-0 left-0 h-full flex flex-col z-40 bg-white"
-          style={{
-            width: 256,
-            borderRight: '1px solid #f1f5f9',
-            boxShadow: isDesktop ? 'none' : '4px 0 24px rgba(0,0,0,0.12)',
-          }}
-        >
-          {/* Logo */}
-          <div className="flex items-center px-6 border-b border-slate-100" style={{ height: 64 }}>
-            <div className="flex items-center gap-3 flex-1">
-              <div className="flex items-center justify-center rounded-lg bg-blue-600" style={{ width: 32, height: 32 }}>
-                <span className="text-white font-bold text-sm">M</span>
-              </div>
-              <span className="font-bold text-blue-700 text-lg tracking-tight">Medfin</span>
-            </div>
-            {!isDesktop && (
-              <button onClick={() => setSidebarOpen(false)} className="text-slate-400 hover:text-slate-600 ml-2">
-                <X size={18} />
-              </button>
-            )}
+    <div
+      className="app"
+      style={{
+        display: 'grid',
+        gridTemplateColumns: '248px 1fr',
+        minHeight: '100vh',
+      }}
+      onKeyDown={(e) => {
+        if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+          e.preventDefault()
+        }
+        if (e.key === 'n' && !['INPUT', 'TEXTAREA'].includes((document.activeElement as any)?.tagName)) {
+          e.preventDefault()
+          router.push('/prestaciones/nueva')
+        }
+      }}
+    >
+      {/* Sidebar */}
+      <aside className="sidebar" style={{
+        borderRight: '1px solid var(--line)',
+        background: 'var(--surface)',
+        display: 'flex',
+        flexDirection: 'column',
+        position: 'sticky',
+        top: 0,
+        height: '100vh',
+      }}>
+        {/* Brand */}
+        <div className="brand" style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          padding: '22px 22px 18px',
+          borderBottom: '1px solid var(--line)',
+        }}>
+          <div className="brand-mark" style={{
+            width: '28px',
+            height: '28px',
+            borderRadius: '8px',
+            background: 'linear-gradient(135deg, oklch(0.42 0.12 155), oklch(0.28 0.08 155))',
+            color: 'white',
+            display: 'grid',
+            placeItems: 'center',
+            fontWeight: 600,
+            fontSize: '13px',
+            letterSpacing: '-0.02em',
+            position: 'relative',
+          }}>
+            M
+            <style>{`
+              .brand-mark::after {
+                content: '';
+                position: absolute;
+                inset: 6px;
+                border: 1.5px solid rgba(255,255,255,0.55);
+                border-radius: 4px;
+                border-right-color: transparent;
+                border-bottom-color: transparent;
+                transform: rotate(45deg);
+              }
+            `}</style>
           </div>
-
-          {/* Nav */}
-          <nav className="flex-1 px-4 py-6 overflow-y-auto">
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest px-3 mb-4">Menú</p>
-            <div className="flex flex-col gap-1">
-              {navItems.map(({ href, label, icon: Icon }) => {
-                const active = pathname === href || (href !== '/dashboard' && pathname.startsWith(href))
-                return (
-                  <Link
-                    key={href}
-                    href={href}
-                    className={cn(
-                      'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all relative',
-                      active ? 'text-blue-600' : 'text-slate-500 hover:text-slate-700'
-                    )}
-                    style={active ? { backgroundColor: '#eff6ff' } : {}}
-                  >
-                    {active && (
-                      <span
-                        className="absolute rounded-r-full bg-blue-600"
-                        style={{ left: 0, top: '50%', transform: 'translateY(-50%)', width: 3, height: 24 }}
-                      />
-                    )}
-                    <Icon size={18} strokeWidth={active ? 2.5 : 1.8} />
-                    <span className="flex-1">{label}</span>
-                    {active && <ChevronRight size={14} className="opacity-40" />}
-                  </Link>
-                )
-              })}
+          <div>
+            <div className="brand-name" style={{
+              fontWeight: 600,
+              fontSize: '15px',
+              letterSpacing: '-0.02em',
+            }}>
+              Medfin<span className="brand-dot" style={{
+                color: 'var(--ink-4)',
+                marginLeft: '4px',
+                fontSize: '12px',
+              }}>·cl</span>
             </div>
-          </nav>
-
-          {/* Usuario */}
-          <div className="p-4 border-t border-slate-100">
-            <div className="flex items-center gap-3 px-2 py-2 rounded-xl">
-              <div
-                className="flex items-center justify-center rounded-full text-white text-xs font-bold shrink-0"
-                style={{ width: 36, height: 36, background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)' }}
-              >
-                {iniciales}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-slate-800 truncate">{primerNombre}</p>
-                <p className="text-xs text-slate-400">Profesional de salud</p>
-              </div>
-              <button
-                onClick={cerrarSesion}
-                className="text-slate-400 hover:text-red-500 transition-colors p-1 rounded-lg"
-                title="Cerrar sesión"
-              >
-                <LogOut size={15} />
-              </button>
-            </div>
+            <div style={{
+              fontSize: '10.5px',
+              color: 'var(--ink-3)',
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+            }}>Cobranzas médicas</div>
           </div>
-        </aside>
-      )}
+        </div>
 
-      {/* ── Área principal ── */}
-      <div
-        className="flex flex-col min-h-screen w-full"
-        style={{ marginLeft: isDesktop ? 256 : 0 }}
-      >
-        {/* Header */}
-        <header
-          className="flex items-center px-6 bg-white sticky top-0 z-20"
-          style={{ height: 64, borderBottom: '1px solid #f1f5f9' }}
-        >
-          {!isDesktop && (
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="text-slate-500 hover:text-slate-700 mr-4 p-1"
+        {/* Nav */}
+        <nav style={{
+          padding: '14px 12px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '2px',
+          flex: 1,
+          overflow: 'auto',
+        }}>
+          <div style={{
+            fontSize: '10px',
+            textTransform: 'uppercase',
+            letterSpacing: '0.14em',
+            color: 'var(--ink-4)',
+            padding: '14px 12px 8px',
+            fontWeight: 600,
+          }}>Menú</div>
+          {navItems.map(({ href, label, icon: Icon }) => (
+            <Link
+              key={href}
+              href={href}
+              onClick={() => setSidebarOpen(false)}
+              className="nav-item"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                padding: '9px 12px',
+                borderRadius: '10px',
+                color: isActive(href) ? '#fff' : 'var(--ink-2)',
+                fontSize: '13.5px',
+                fontWeight: 500,
+                transition: 'background 0.15s, color 0.15s',
+                background: isActive(href) ? 'var(--ink)' : 'transparent',
+                cursor: 'pointer',
+              }}
+              onMouseEnter={(e) => {
+                if (!isActive(href)) {
+                  (e.target as HTMLElement).style.background = 'var(--accent-weak)';
+                  (e.target as HTMLElement).style.color = 'var(--ink)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isActive(href)) {
+                  (e.target as HTMLElement).style.background = 'transparent';
+                  (e.target as HTMLElement).style.color = 'var(--ink-2)';
+                }
+              }}
             >
-              <Menu size={22} />
+              <Icon size={16} style={{ flexShrink: 0 }} />
+              <span>{label}</span>
+            </Link>
+          ))}
+
+          <div style={{
+            fontSize: '10px',
+            textTransform: 'uppercase',
+            letterSpacing: '0.14em',
+            color: 'var(--ink-4)',
+            padding: '14px 12px 8px',
+            fontWeight: 600,
+            marginTop: '8px',
+          }}>Alianzas</div>
+          {alianzasItems.map(({ href, label, icon: Icon }) => (
+            <Link
+              key={href}
+              href={href}
+              onClick={() => setSidebarOpen(false)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                padding: '9px 12px',
+                borderRadius: '10px',
+                color: isActive(href) ? '#fff' : 'var(--ink-2)',
+                fontSize: '13.5px',
+                fontWeight: 500,
+                transition: 'background 0.15s, color 0.15s',
+                background: isActive(href) ? 'var(--ink)' : 'transparent',
+              }}
+            >
+              <Icon size={16} style={{ flexShrink: 0 }} />
+              <span>{label}</span>
+              <span style={{
+                marginLeft: 'auto',
+                fontSize: '11px',
+                color: isActive(href) ? 'rgba(255,255,255,0.85)' : 'var(--accent-strong)',
+                background: isActive(href) ? 'rgba(255,255,255,0.14)' : 'var(--accent-soft)',
+                padding: '1px 7px',
+                borderRadius: '999px',
+                fontVariantNumeric: 'tabular-nums',
+              }}>Nuevo</span>
+            </Link>
+          ))}
+
+          <div style={{
+            fontSize: '10px',
+            textTransform: 'uppercase',
+            letterSpacing: '0.14em',
+            color: 'var(--ink-4)',
+            padding: '14px 12px 8px',
+            fontWeight: 600,
+            marginTop: '8px',
+          }}>Acciones rápidas</div>
+          <Link
+            href="/prestaciones/nueva"
+            onClick={() => setSidebarOpen(false)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              padding: '9px 12px',
+              borderRadius: '10px',
+              color: 'var(--ink-2)',
+              fontSize: '13.5px',
+              fontWeight: 500,
+              transition: 'background 0.15s, color 0.15s',
+            }}
+          >
+            <Plus size={16} style={{ flexShrink: 0 }} />
+            <span>Nueva prestación</span>
+            <span className="kbd" style={{ marginLeft: 'auto' }}>N</span>
+          </Link>
+          <button
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              padding: '9px 12px',
+              borderRadius: '10px',
+              color: 'var(--ink-2)',
+              fontSize: '13.5px',
+              fontWeight: 500,
+              transition: 'background 0.15s, color 0.15s',
+            }}
+          >
+            <Download size={16} style={{ flexShrink: 0 }} />
+            <span>Exportar a SII</span>
+          </button>
+        </nav>
+
+        {/* User card */}
+        <div style={{
+          margin: '12px',
+          padding: '12px',
+          border: '1px solid var(--line)',
+          borderRadius: '12px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+        }}>
+          <div style={{
+            width: '32px',
+            height: '32px',
+            borderRadius: '50%',
+            background: 'var(--ink)',
+            color: '#fff',
+            display: 'grid',
+            placeItems: 'center',
+            fontWeight: 600,
+            fontSize: '12px',
+            letterSpacing: '-0.02em',
+          }}>
+            {iniciales}
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{
+              fontSize: '13px',
+              fontWeight: 600,
+              letterSpacing: '-0.01em',
+            }}>Dra. {primerApellido}</div>
+            <div style={{
+              fontSize: '11px',
+              color: 'var(--ink-3)',
+            }}>Cirujana general</div>
+          </div>
+          <button
+            onClick={cerrarSesion}
+            style={{
+              color: 'var(--ink-3)',
+              padding: '4px',
+              borderRadius: '6px',
+              cursor: 'pointer',
+            }}
+            title="Cerrar sesión"
+          >
+            <LogOut size={14} />
+          </button>
+        </div>
+      </aside>
+
+      {/* Main */}
+      <main style={{
+        display: 'flex',
+        flexDirection: 'column',
+        minWidth: 0,
+      }}>
+        {/* Topbar */}
+        <header style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '14px',
+          padding: '16px 32px',
+          borderBottom: '1px solid var(--line)',
+          background: 'color-mix(in oklab, var(--bg), white 40%)',
+          backdropFilter: 'saturate(140%) blur(8px)',
+          position: 'sticky',
+          top: 0,
+          zIndex: 10,
+        }}>
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            style={{ display: 'none' }}
+            className="md:hidden"
+          >
+            {sidebarOpen ? <X size={22} /> : <Menu size={22} />}
+          </button>
+          <div>
+            <div style={{
+              fontSize: '12px',
+              color: 'var(--ink-3)',
+            }}>{pageConfig.crumb}</div>
+            <div className="serif" style={{
+              fontSize: '22px',
+              letterSpacing: '-0.01em',
+            }}>{pageConfig.title}</div>
+          </div>
+          <div style={{
+            marginLeft: 'auto',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+          }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              border: '1px solid var(--line-2)',
+              borderRadius: '10px',
+              padding: '7px 10px',
+              background: 'var(--surface)',
+              minWidth: '240px',
+              color: 'var(--ink-3)',
+              fontSize: '13px',
+            }}>
+              <Search size={14} />
+              <input
+                type="text"
+                placeholder="Buscar prestación, institución…"
+                style={{
+                  border: 0,
+                  outline: 0,
+                  flex: 1,
+                  background: 'transparent',
+                  color: 'var(--ink)',
+                }}
+              />
+              <span className="kbd">⌘K</span>
+            </div>
+            <button className="btn btn-ghost" title="Notificaciones" style={{ position: 'relative' }}>
+              <Bell size={14} />
+              <span style={{
+                position: 'absolute',
+                top: '6px',
+                right: '8px',
+                width: '6px',
+                height: '6px',
+                background: 'var(--red)',
+                borderRadius: '50%',
+              }} />
             </button>
-          )}
-          <h1 className="font-bold text-slate-800 text-base">{pageTitle}</h1>
-          <div className="ml-auto">
-            <div
-              className="flex items-center justify-center rounded-full text-white text-xs font-bold"
-              style={{ width: 32, height: 32, background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)' }}
-            >
-              {iniciales}
-            </div>
+            <button className="btn btn-ghost" title="Tweaks">
+              <Sliders size={14} />
+            </button>
           </div>
         </header>
 
-        {/* Contenido */}
-        <main className="flex-1 p-4 pb-24" style={{ paddingBottom: isDesktop ? 32 : 96 }}>
-          {children}
-        </main>
-      </div>
-
-      {/* Bottom nav solo en móvil */}
-      {!isDesktop && (
-        <nav className="fixed bottom-0 left-0 right-0 bg-white z-20" style={{ borderTop: '1px solid #f1f5f9' }}>
-          <div className="flex">
-            {navItems.map(({ href, label, icon: Icon }) => {
-              const active = pathname === href || (href !== '/dashboard' && pathname.startsWith(href))
-              return (
-                <Link
-                  key={href}
-                  href={href}
-                  className={cn(
-                    'flex-1 flex flex-col items-center justify-center py-3 gap-0.5 text-xs transition-colors',
-                    active ? 'text-blue-600' : 'text-slate-400'
-                  )}
-                >
-                  <Icon size={19} strokeWidth={active ? 2.5 : 1.8} />
-                  <span className={cn(active && 'font-semibold')}>{label}</span>
-                </Link>
-              )
-            })}
+        {/* Content */}
+        <div style={{
+          padding: '28px 32px 64px',
+          maxWidth: '1280px',
+          width: '100%',
+          flex: 1,
+        }}>
+          <div className="screen">
+            {children}
           </div>
-        </nav>
-      )}
+        </div>
+      </main>
+
+      <style>{`
+        @media (max-width: 900px) {
+          .app {
+            grid-template-columns: 1fr;
+          }
+          .sidebar {
+            display: none;
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 248px;
+            z-index: 40;
+            box-shadow: 4px 0 24px rgba(0,0,0,0.12);
+          }
+          .sidebar.show {
+            display: flex;
+          }
+        }
+      `}</style>
     </div>
   )
 }
