@@ -10,7 +10,9 @@ function LoginContent() {
 
   async function loginConGoogle() {
     const supabase = createClient()
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
+    // Usar la URL canónica siempre — evita redirigir a un deployment antiguo de Vercel.
+    // NEXT_PUBLIC_APP_URL se puede setear en Vercel para sobrescribir en producción.
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://medfin-henna.vercel.app'
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
