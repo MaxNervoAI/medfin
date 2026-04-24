@@ -41,6 +41,10 @@ export async function middleware(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
 
   const { pathname } = request.nextUrl
+  const url = request.nextUrl.clone()
+
+  // Debug mode: allow bypassing auth in development
+  const isDebug = url.searchParams.get('debug') === 'true' && process.env.NODE_ENV === 'development'
 
   // Rutas públicas
   const publicPaths = ['/login', '/auth/callback']
@@ -48,9 +52,8 @@ export async function middleware(request: NextRequest) {
     return supabaseResponse
   }
 
-  // Si no hay sesión, redirigir a login
-  if (!user) {
-    const url = request.nextUrl.clone()
+  // Si no hay sesión y no es debug mode, redirigir a login
+  if (!user && !isDebug) {
     url.pathname = '/login'
     return NextResponse.redirect(url)
   }

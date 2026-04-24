@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { calcularFechaLimiteBoleta, formatMonto } from '@/lib/utils'
+import { calcularFechaLimiteBoleta, formatMonto, getTaxRate } from '@/lib/utils'
 import type { Institucion, ReglasPlazo } from '@/types'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
@@ -21,6 +21,12 @@ export default function NuevaPrestacionForm({ instituciones, reglas }: Props) {
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [taxRate, setTaxRate] = useState<number>(0.145)
+
+  // Fetch dynamic tax rate on mount
+  useEffect(() => {
+    getTaxRate(supabase).then(rate => setTaxRate(rate))
+  }, [])
 
   // Campos del formulario
   const [institucionId, setInstitucionId] = useState('')
@@ -55,8 +61,8 @@ export default function NuevaPrestacionForm({ instituciones, reglas }: Props) {
     ? (parseFloat(horas) * parseFloat(valorHora))
     : parseFloat(montoBruto) || 0
 
-  // Retención solo se aplica a boletas (14.5%), no a facturas (0%)
-  const retencionPct = tipoDocumento === 'boleta' ? 14.5 : 0
+  // Retención dinámica desde tax_settings (default 14.5%)
+  const retencionPct = tipoDocumento === 'boleta' ? taxRate * 100 : 0
   const montoRetencion = Math.round(montoBrutoCalculado * retencionPct / 100)
   const montoNeto = Math.round(montoBrutoCalculado * (1 - retencionPct / 100))
 

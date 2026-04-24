@@ -3,7 +3,21 @@ import { redirect } from 'next/navigation'
 import AppShell from '@/components/layout/AppShell'
 import DashboardClient from './DashboardClient'
 
-export default async function DashboardPage() {
+export default async function DashboardPage({ searchParams }: { searchParams: { debug?: string } }) {
+  const isDebug = searchParams.debug === 'true' && process.env.NODE_ENV === 'development'
+
+  if (isDebug) {
+    // Debug mode: use mock data
+    return (
+      <AppShell nombre="Debug User">
+        <DashboardClient
+          nombre="Debug User"
+          prestaciones={[]}
+        />
+      </AppShell>
+    )
+  }
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')

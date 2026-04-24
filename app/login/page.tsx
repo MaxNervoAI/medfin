@@ -62,6 +62,15 @@ function LoginContent() {
             </svg>
             Continuar con Google
           </button>
+
+          {process.env.NODE_ENV === 'development' && (
+            <button
+              onClick={() => (window.location.href = '/dashboard?debug=true')}
+              className="w-full mt-3 flex items-center justify-center gap-2 bg-orange-50 border border-orange-200 rounded-xl py-2 px-4 text-orange-700 text-sm font-medium hover:bg-orange-100 transition-colors"
+            >
+              🔧 Debug: Skip to Dashboard
+            </button>
+          )}
         </div>
 
         <p className="text-center text-xs text-slate-400 mt-6">

@@ -26,14 +26,28 @@
 ---
 
 ## Epic 2: Data Architecture & Tax Fix (BLOCKER)
-**Status:** Tax rate hardcoded in `NuevaPrestacionForm.tsx:59` and schema.
+**Status:** ✅ COMPLETED (2026-04-24)
+**Notes:** Migration `002_tax_settings.sql` created with RLS policies. `getTaxRate()` helper added to `lib/utils.ts` with Supabase fetch + env fallback. `NuevaPrestacionForm.tsx` refactored to fetch rate dynamically on mount. Hardcoded `14.5` removed from codebase.
 
-- [ ] **E2.1** Create migration `002_tax_settings.sql`:
+- [x] **E2.1** Create migration `002_tax_settings.sql`:
   - Table: `tax_settings(id, current_rate, valid_from, valid_to)`
   - Insert default: `current_rate = 0.145`
-- [ ] **E2.2** Add RLS: `SELECT` for auth users (global read-only config)
-- [ ] **E2.3** Refactor `NuevaPrestacionForm.tsx`: fetch rate from Supabase on mount, remove hardcoded `14.5`
-- [ ] **E2.4** Add `.env` fallback: `NEXT_PUBLIC_DEFAULT_TAX_RATE=0.145`
+- [x] **E2.2** Add RLS: `SELECT` for auth users (global read-only config)
+- [x] **E2.3** Refactor `NuevaPrestacionForm.tsx`: fetch rate from Supabase on mount, remove hardcoded `14.5`
+- [x] **E2.4** Add `.env` fallback: `NEXT_PUBLIC_DEFAULT_TAX_RATE=0.145`
+
+---
+
+## Local Supabase Setup (Path B)
+**Status:** ✅ COMPLETED (2026-04-24)
+**Notes:** Local development environment configured. `supabase/config.toml`, `supabase/seed.sql`, `.env.local.example`, and `LOCAL_DEV_SETUP.md` created. Supabase CLI scripts added to `package.json`. This setup is fully isolated from any cloud Supabase project.
+
+- [x] **LS.1** Create `supabase/config.toml` with local API/auth/studio ports
+- [x] **LS.2** Create `supabase/seed.sql` with demo tax rate and institutions
+- [x] **LS.3** Add `.env.local.example` with default local Supabase credentials
+- [x] **LS.4** Add Supabase CLI scripts to `package.json`
+- [x] **LS.5** Create `LOCAL_DEV_SETUP.md` quick-start guide
+- [x] **LS.6** Update `.gitignore` for Supabase local files
 
 ---
 

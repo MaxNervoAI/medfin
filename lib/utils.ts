@@ -126,6 +126,26 @@ export function getNombreMes(mes: string): string {
   return format(new Date(parseInt(year), parseInt(month) - 1), "MMMM yyyy", { locale: es })
 }
 
+export async function getTaxRate(supabase: any): Promise<number> {
+  try {
+    const { data, error } = await supabase
+      .from('tax_settings')
+      .select('current_rate')
+      .order('valid_from', { ascending: false })
+      .limit(1)
+      .single()
+
+    if (!error && data?.current_rate != null) {
+      return data.current_rate
+    }
+  } catch {
+    // Supabase unavailable — fallback to env
+  }
+
+  const envRate = process.env.NEXT_PUBLIC_DEFAULT_TAX_RATE
+  return envRate ? parseFloat(envRate) : 0.145
+}
+
 export function calcularIngresosPorMes(prestaciones: Prestacion[]) {
   const mesActual = getMesActual()
   const [year, month] = mesActual.split('-').map(Number)
