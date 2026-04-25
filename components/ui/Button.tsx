@@ -15,9 +15,9 @@ const variants = {
 }
 
 const sizes = {
-  sm: 'px-3 py-1.5 text-sm rounded-lg',
-  md: 'px-4 py-2.5 text-sm rounded-xl',
-  lg: 'px-5 py-3 text-base rounded-xl',
+  sm: 'px-3 py-3 text-sm rounded-lg min-h-[44px]',
+  md: 'px-4 py-3 text-sm rounded-xl min-h-[44px]',
+  lg: 'px-5 py-3 text-base rounded-xl min-h-[44px]',
 }
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(

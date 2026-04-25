@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { LayoutDashboard, FileText, Building2, PieChart, LogOut, Menu, X, Search, Bell, Sliders, Sprout, Plus, Download } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useState } from 'react'
+import MobileNav from './MobileNav'
 
 const navItems = [
   { href: '/dashboard',     label: 'Dashboard',   icon: LayoutDashboard },
@@ -48,12 +49,7 @@ export default function AppShell({ children, nombre }: { children: React.ReactNo
 
   return (
     <div
-      className="app"
-      style={{
-        display: 'grid',
-        gridTemplateColumns: '248px 1fr',
-        minHeight: '100vh',
-      }}
+      className="app grid grid-cols-1 md:grid-cols-[248px_1fr] min-h-screen"
       onKeyDown={(e) => {
         if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
           e.preventDefault()
@@ -65,36 +61,10 @@ export default function AppShell({ children, nombre }: { children: React.ReactNo
       }}
     >
       {/* Sidebar */}
-      <aside className="sidebar" style={{
-        borderRight: '1px solid var(--line)',
-        background: 'var(--surface)',
-        display: 'flex',
-        flexDirection: 'column',
-        position: 'sticky',
-        top: 0,
-        height: '100vh',
-      }}>
+      <aside className={`sidebar border-r border-[var(--line)] bg-[var(--surface)] flex flex-col sticky top-0 h-screen ${sidebarOpen ? 'fixed left-0 top-0 w-[248px] z-40 shadow-xl md:static md:shadow-none md:w-auto' : 'hidden md:flex'}`}>
         {/* Brand */}
-        <div className="brand" style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-          padding: '22px 22px 18px',
-          borderBottom: '1px solid var(--line)',
-        }}>
-          <div className="brand-mark" style={{
-            width: '28px',
-            height: '28px',
-            borderRadius: '8px',
-            background: 'linear-gradient(135deg, oklch(0.42 0.12 155), oklch(0.28 0.08 155))',
-            color: 'white',
-            display: 'grid',
-            placeItems: 'center',
-            fontWeight: 600,
-            fontSize: '13px',
-            letterSpacing: '-0.02em',
-            position: 'relative',
-          }}>
+        <div className="brand flex items-center gap-2.5 px-5.5 py-5.5 border-b border-[var(--line)]">
+          <div className="brand-mark w-7 h-7 rounded-lg bg-gradient-to-br from-[oklch(0.42_0.12_155)] to-[oklch(0.28_0.08_155)] text-white grid place-items-center font-semibold text-[13px] tracking-[-0.02em] relative">
             M
             <style>{`
               .brand-mark::after {
@@ -110,210 +80,82 @@ export default function AppShell({ children, nombre }: { children: React.ReactNo
             `}</style>
           </div>
           <div>
-            <div className="brand-name" style={{
-              fontWeight: 600,
-              fontSize: '15px',
-              letterSpacing: '-0.02em',
-            }}>
-              Medfin<span className="brand-dot" style={{
-                color: 'var(--ink-4)',
-                marginLeft: '4px',
-                fontSize: '12px',
-              }}>·cl</span>
+            <div className="brand-name font-semibold text-[15px] tracking-[-0.02em]">
+              Medfin<span className="brand-dot text-[var(--ink-4)] ml-1 text-[12px]">·cl</span>
             </div>
-            <div style={{
-              fontSize: '10.5px',
-              color: 'var(--ink-3)',
-              letterSpacing: '0.08em',
-              textTransform: 'uppercase',
-            }}>Cobranzas médicas</div>
+            <div className="text-[10.5px] text-[var(--ink-3)] tracking-[0.08em] uppercase">Cobranzas médicas</div>
           </div>
         </div>
 
         {/* Nav */}
-        <nav style={{
-          padding: '14px 12px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '2px',
-          flex: 1,
-          overflow: 'auto',
-        }}>
-          <div style={{
-            fontSize: '10px',
-            textTransform: 'uppercase',
-            letterSpacing: '0.14em',
-            color: 'var(--ink-4)',
-            padding: '14px 12px 8px',
-            fontWeight: 600,
-          }}>Menú</div>
+        <nav className="px-3 py-3.5 flex flex-col gap-0.5 flex-1 overflow-auto">
+          <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--ink-4)] px-3 py-3.5 pb-2 font-semibold">Menú</div>
           {navItems.map(({ href, label, icon: Icon }) => (
             <Link
               key={href}
               href={href}
               onClick={() => setSidebarOpen(false)}
-              className="nav-item"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                padding: '9px 12px',
-                borderRadius: '10px',
-                color: isActive(href) ? '#fff' : 'var(--ink-2)',
-                fontSize: '13.5px',
-                fontWeight: 500,
-                transition: 'background 0.15s, color 0.15s',
-                background: isActive(href) ? 'var(--ink)' : 'transparent',
-                cursor: 'pointer',
-              }}
-              onMouseEnter={(e) => {
-                if (!isActive(href)) {
-                  (e.target as HTMLElement).style.background = 'var(--accent-weak)';
-                  (e.target as HTMLElement).style.color = 'var(--ink)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!isActive(href)) {
-                  (e.target as HTMLElement).style.background = 'transparent';
-                  (e.target as HTMLElement).style.color = 'var(--ink-2)';
-                }
-              }}
+              className={`nav-item flex items-center gap-2.5 px-3 py-3 rounded-xl text-[13.5px] font-medium transition-all duration-150 cursor-pointer min-h-[44px] ${
+                isActive(href)
+                  ? 'bg-[var(--ink)] text-white'
+                  : 'text-[var(--ink-2)] hover:bg-[var(--accent-weak)] hover:text-[var(--ink)]'
+              }`}
             >
-              <Icon size={16} style={{ flexShrink: 0 }} />
+              <Icon size={16} className="flex-shrink-0" />
               <span>{label}</span>
             </Link>
           ))}
 
-          <div style={{
-            fontSize: '10px',
-            textTransform: 'uppercase',
-            letterSpacing: '0.14em',
-            color: 'var(--ink-4)',
-            padding: '14px 12px 8px',
-            fontWeight: 600,
-            marginTop: '8px',
-          }}>Alianzas</div>
+          <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--ink-4)] px-3 py-3.5 pb-2 font-semibold mt-2">Alianzas</div>
           {alianzasItems.map(({ href, label, icon: Icon }) => (
             <Link
               key={href}
               href={href}
               onClick={() => setSidebarOpen(false)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                padding: '9px 12px',
-                borderRadius: '10px',
-                color: isActive(href) ? '#fff' : 'var(--ink-2)',
-                fontSize: '13.5px',
-                fontWeight: 500,
-                transition: 'background 0.15s, color 0.15s',
-                background: isActive(href) ? 'var(--ink)' : 'transparent',
-              }}
+              className={`flex items-center gap-2.5 px-3 py-3 rounded-xl text-[13.5px] font-medium transition-all duration-150 min-h-[44px] ${
+                isActive(href)
+                  ? 'bg-[var(--ink)] text-white'
+                  : 'text-[var(--ink-2)]'
+              }`}
             >
-              <Icon size={16} style={{ flexShrink: 0 }} />
+              <Icon size={16} className="flex-shrink-0" />
               <span>{label}</span>
-              <span style={{
-                marginLeft: 'auto',
-                fontSize: '11px',
-                color: isActive(href) ? 'rgba(255,255,255,0.85)' : 'var(--accent-strong)',
-                background: isActive(href) ? 'rgba(255,255,255,0.14)' : 'var(--accent-soft)',
-                padding: '1px 7px',
-                borderRadius: '999px',
-                fontVariantNumeric: 'tabular-nums',
-              }}>Nuevo</span>
+              <span className={`ml-auto text-[11px] tabular-nums px-1.5 py-0.5 rounded-full ${
+                isActive(href)
+                  ? 'text-white/85 bg-white/14'
+                  : 'text-[var(--accent-strong)] bg-[var(--accent-soft)]'
+              }`}>Nuevo</span>
             </Link>
           ))}
 
-          <div style={{
-            fontSize: '10px',
-            textTransform: 'uppercase',
-            letterSpacing: '0.14em',
-            color: 'var(--ink-4)',
-            padding: '14px 12px 8px',
-            fontWeight: 600,
-            marginTop: '8px',
-          }}>Acciones rápidas</div>
+          <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--ink-4)] px-3 py-3.5 pb-2 font-semibold mt-2">Acciones rápidas</div>
           <Link
             href="/prestaciones/nueva"
             onClick={() => setSidebarOpen(false)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px',
-              padding: '9px 12px',
-              borderRadius: '10px',
-              color: 'var(--ink-2)',
-              fontSize: '13.5px',
-              fontWeight: 500,
-              transition: 'background 0.15s, color 0.15s',
-            }}
+            className="flex items-center gap-2.5 px-3 py-3 rounded-xl text-[var(--ink-2)] text-[13.5px] font-medium transition-all duration-150 hover:bg-[var(--accent-weak)] hover:text-[var(--ink)] min-h-[44px]"
           >
-            <Plus size={16} style={{ flexShrink: 0 }} />
+            <Plus size={16} className="flex-shrink-0" />
             <span>Nueva prestación</span>
-            <span className="kbd" style={{ marginLeft: 'auto' }}>N</span>
+            <span className="kbd ml-auto">N</span>
           </Link>
-          <button
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px',
-              padding: '9px 12px',
-              borderRadius: '10px',
-              color: 'var(--ink-2)',
-              fontSize: '13.5px',
-              fontWeight: 500,
-              transition: 'background 0.15s, color 0.15s',
-            }}
-          >
-            <Download size={16} style={{ flexShrink: 0 }} />
+          <button className="flex items-center gap-2.5 px-3 py-3 rounded-xl text-[var(--ink-2)] text-[13.5px] font-medium transition-all duration-150 hover:bg-[var(--accent-weak)] hover:text-[var(--ink)] min-h-[44px]">
+            <Download size={16} className="flex-shrink-0" />
             <span>Exportar a SII</span>
           </button>
         </nav>
 
         {/* User card */}
-        <div style={{
-          margin: '12px',
-          padding: '12px',
-          border: '1px solid var(--line)',
-          borderRadius: '12px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-        }}>
-          <div style={{
-            width: '32px',
-            height: '32px',
-            borderRadius: '50%',
-            background: 'var(--ink)',
-            color: '#fff',
-            display: 'grid',
-            placeItems: 'center',
-            fontWeight: 600,
-            fontSize: '12px',
-            letterSpacing: '-0.02em',
-          }}>
+        <div className="m-3 p-3 border border-[var(--line)] rounded-xl flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-full bg-[var(--ink)] text-white grid place-items-center font-semibold text-[12px] tracking-[-0.02em]">
             {iniciales}
           </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{
-              fontSize: '13px',
-              fontWeight: 600,
-              letterSpacing: '-0.01em',
-            }}>Dra. {primerApellido}</div>
-            <div style={{
-              fontSize: '11px',
-              color: 'var(--ink-3)',
-            }}>Cirujana general</div>
+          <div className="flex-1 min-w-0">
+            <div className="text-[13px] font-semibold tracking-[-0.01em]">Dra. {primerApellido}</div>
+            <div className="text-[11px] text-[var(--ink-3)]">Cirujana general</div>
           </div>
           <button
             onClick={cerrarSesion}
-            style={{
-              color: 'var(--ink-3)',
-              padding: '4px',
-              borderRadius: '6px',
-              cursor: 'pointer',
-            }}
+            className="text-[var(--ink-3)] p-1 rounded-lg cursor-pointer hover:bg-[var(--bg)] transition-colors"
             title="Cerrar sesión"
           >
             <LogOut size={14} />
@@ -322,84 +164,32 @@ export default function AppShell({ children, nombre }: { children: React.ReactNo
       </aside>
 
       {/* Main */}
-      <main style={{
-        display: 'flex',
-        flexDirection: 'column',
-        minWidth: 0,
-      }}>
+      <main className="flex flex-col min-w-0">
         {/* Topbar */}
-        <header style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '14px',
-          padding: '16px 32px',
-          borderBottom: '1px solid var(--line)',
-          background: 'color-mix(in oklab, var(--bg), white 40%)',
-          backdropFilter: 'saturate(140%) blur(8px)',
-          position: 'sticky',
-          top: 0,
-          zIndex: 10,
-        }}>
+        <header className="flex items-center gap-3.5 px-8 py-4 border-b border-[var(--line)] bg-[color-mix(in_oklab,var(--bg),white_40%)] backdrop-blur saturate-[140%] sticky top-0 z-10">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            style={{ display: 'none' }}
-            className="md:hidden"
+            className="flex md:hidden"
           >
             {sidebarOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
           <div>
-            <div style={{
-              fontSize: '12px',
-              color: 'var(--ink-3)',
-            }}>{pageConfig.crumb}</div>
-            <div className="serif" style={{
-              fontSize: '22px',
-              letterSpacing: '-0.01em',
-            }}>{pageConfig.title}</div>
+            <div className="text-[12px] text-[var(--ink-3)]">{pageConfig.crumb}</div>
+            <div className="serif text-[22px] tracking-[-0.01em]">{pageConfig.title}</div>
           </div>
-          <div style={{
-            marginLeft: 'auto',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-          }}>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              border: '1px solid var(--line-2)',
-              borderRadius: '10px',
-              padding: '7px 10px',
-              background: 'var(--surface)',
-              minWidth: '240px',
-              color: 'var(--ink-3)',
-              fontSize: '13px',
-            }}>
+          <div className="ml-auto flex items-center gap-2.5">
+            <div className="flex items-center gap-2 border border-[var(--line-2)] rounded-xl px-2.5 py-1.5 bg-[var(--surface)] min-w-[240px] text-[var(--ink-3)] text-[13px]">
               <Search size={14} />
               <input
                 type="text"
                 placeholder="Buscar prestación, institución…"
-                style={{
-                  border: 0,
-                  outline: 0,
-                  flex: 1,
-                  background: 'transparent',
-                  color: 'var(--ink)',
-                }}
+                className="border-0 outline-0 flex-1 bg-transparent text-[var(--ink)]"
               />
               <span className="kbd">⌘K</span>
             </div>
-            <button className="btn btn-ghost" title="Notificaciones" style={{ position: 'relative' }}>
+            <button className="btn btn-ghost relative" title="Notificaciones">
               <Bell size={14} />
-              <span style={{
-                position: 'absolute',
-                top: '6px',
-                right: '8px',
-                width: '6px',
-                height: '6px',
-                background: 'var(--red)',
-                borderRadius: '50%',
-              }} />
+              <span className="absolute top-1.5 right-2 w-1.5 h-1.5 bg-[var(--red)] rounded-full" />
             </button>
             <button className="btn btn-ghost" title="Tweaks">
               <Sliders size={14} />
@@ -408,37 +198,13 @@ export default function AppShell({ children, nombre }: { children: React.ReactNo
         </header>
 
         {/* Content */}
-        <div style={{
-          padding: '28px 32px 64px',
-          maxWidth: '1280px',
-          width: '100%',
-          flex: 1,
-        }}>
+        <div className="px-8 py-7 pb-16 md:pb-16 max-w-[1280px] w-full flex-1">
           <div className="screen">
             {children}
           </div>
         </div>
       </main>
-
-      <style>{`
-        @media (max-width: 900px) {
-          .app {
-            grid-template-columns: 1fr;
-          }
-          .sidebar {
-            display: none;
-            position: fixed;
-            left: 0;
-            top: 0;
-            width: 248px;
-            z-index: 40;
-            box-shadow: 4px 0 24px rgba(0,0,0,0.12);
-          }
-          .sidebar.show {
-            display: flex;
-          }
-        }
-      `}</style>
+      <MobileNav />
     </div>
   )
 }

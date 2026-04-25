@@ -51,204 +51,135 @@ export default function PresupuestoClient({ prestaciones }: Props) {
   return (
     <div>
       {/* Header con navegación de meses */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 style={{ fontSize: '20px', fontWeight: 'bold', color: 'var(--ink)', margin: 0 }}>
+          <h1 className="text-[20px] font-bold text-[var(--ink)] m-0">
             Presupuesto
           </h1>
-          <p style={{ fontSize: '14px', color: 'var(--ink-3)', marginTop: '4px', margin: 0 }}>
+          <p className="text-[14px] text-[var(--ink-3)] mt-1 m-0">
             Proyección de ingresos
           </p>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div className="flex items-center gap-2">
           <button
             onClick={() => setMesIdx(i => Math.min(i + 1, meses.length - 1))}
             disabled={mesIdx >= meses.length - 1}
-            style={{
-              padding: '8px',
-              cursor: mesIdx >= meses.length - 1 ? 'not-allowed' : 'pointer',
-              borderRadius: '12px',
-              opacity: mesIdx >= meses.length - 1 ? 0.3 : 1,
-              transition: 'all 0.15s',
-            }}
-            onMouseEnter={(e) => {
-              if (mesIdx < meses.length - 1) {
-                (e.currentTarget).style.background = 'var(--bg)';
-              }
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget).style.background = 'transparent';
-            }}
+            className={`p-2 rounded-xl transition-all duration-150 ${
+              mesIdx >= meses.length - 1 ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer hover:bg-[var(--bg)]'
+            }`}
           >
-            <ChevronLeft size={18} style={{ color: 'var(--ink-2)' }} />
+            <ChevronLeft size={18} className="text-[var(--ink-2)]" />
           </button>
-          <span style={{
-            fontSize: '14px',
-            fontWeight: 600,
-            color: 'var(--ink-2)',
-            textTransform: 'capitalize',
-            minWidth: '110px',
-            textAlign: 'center',
-          }}>
+          <span className="text-[14px] font-semibold text-[var(--ink-2)] capitalize min-w-[110px] text-center">
             {getNombreMes(mesSeleccionado).split(' ')[0]}
           </span>
           <button
             onClick={() => setMesIdx(i => Math.max(i - 1, 0))}
             disabled={mesIdx <= 0}
-            style={{
-              padding: '8px',
-              cursor: mesIdx <= 0 ? 'not-allowed' : 'pointer',
-              borderRadius: '12px',
-              opacity: mesIdx <= 0 ? 0.3 : 1,
-              transition: 'all 0.15s',
-            }}
-            onMouseEnter={(e) => {
-              if (mesIdx > 0) {
-                (e.currentTarget).style.background = 'var(--bg)';
-              }
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget).style.background = 'transparent';
-            }}
+            className={`p-2 rounded-xl transition-all duration-150 ${
+              mesIdx <= 0 ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer hover:bg-[var(--bg)]'
+            }`}
           >
-            <ChevronRight size={18} style={{ color: 'var(--ink-2)' }} />
+            <ChevronRight size={18} className="text-[var(--ink-2)]" />
           </button>
         </div>
       </div>
 
       {delMes.length === 0 ? (
-        <div style={{ textAlign: 'center', paddingTop: '64px', paddingBottom: '64px', color: 'var(--ink-3)' }}>
-          <p style={{ fontWeight: 500, margin: '0 0 8px 0' }}>Sin prestaciones este mes</p>
-          <p style={{ fontSize: '14px', margin: '0' }}>Registra prestaciones para ver la proyección</p>
+        <div className="text-center py-16 text-[var(--ink-3)]">
+          <p className="font-medium mb-2 mt-0">Sin prestaciones este mes</p>
+          <p className="text-[14px] m-0">Registra prestaciones para ver la proyección</p>
         </div>
       ) : (
         <>
           {/* Tarjeta principal */}
-          <div style={{
-            background: `linear-gradient(135deg, var(--accent), var(--accent-strong))`,
-            borderRadius: 'var(--radius-lg)',
-            padding: '20px',
-            color: '#fff',
-            marginBottom: '20px',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-          }}>
-            <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '14px', margin: '0 0 4px 0' }}>
+          <div className="bg-gradient-to-br from-[var(--accent)] to-[var(--accent-strong)] rounded-[var(--radius-lg)] px-5 py-5 text-white mb-5 shadow-lg">
+            <p className="text-white/80 text-[14px] mb-1 mt-0">
               Total esperado (neto)
             </p>
-            <p style={{ fontSize: '28px', fontWeight: 'bold', margin: '0 0 16px 0' }}>
+            <p className="text-[28px] font-bold mb-4 mt-0">
               {formatMonto(proyeccion.totalNeto)}
             </p>
 
             {/* Barra de progreso */}
-            <div style={{
-              background: 'rgba(255,255,255,0.2)',
-              borderRadius: '999px',
-              height: '10px',
-              marginBottom: '8px',
-            }}>
+            <div className="bg-white/20 rounded-full h-2.5 mb-2">
               <div
-                style={{
-                  background: '#fff',
-                  borderRadius: '999px',
-                  height: '10px',
-                  transition: 'all 0.3s',
-                  width: `${Math.min(pctCobrado, 100)}%`,
-                }}
+                className="bg-white rounded-full h-2.5 transition-all duration-300"
+                style={{ width: `${Math.min(pctCobrado, 100)}%` }}
               />
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'rgba(255,255,255,0.8)' }}>
+            <div className="flex justify-between text-[12px] text-white/80">
               <span>Cobrado: {formatMonto(proyeccion.pagado)}</span>
               <span>{Math.round(pctCobrado)}%</span>
             </div>
           </div>
 
           {/* Cards secundarias */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: '12px',
-            marginBottom: '20px',
-          }}>
-            <div className="card" style={{ padding: '16px' }}>
-              <p className="eyebrow" style={{ marginBottom: '8px' }}>Monto bruto</p>
-              <p style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--ink)', margin: '0' }}>
+          <div className="grid grid-cols-2 gap-3 mb-5">
+            <div className="card px-4 py-4">
+              <p className="eyebrow mb-2">Monto bruto</p>
+              <p className="text-[18px] font-bold text-[var(--ink)] m-0">
                 {formatMonto(proyeccion.totalBruto)}
               </p>
-              <p style={{ fontSize: '12px', color: 'var(--ink-3)', margin: '4px 0 0 0' }}>
+              <p className="text-[12px] text-[var(--ink-3)] mt-1 mb-0">
                 {delMes.length} prestaciones
               </p>
             </div>
-            <div className="card" style={{ padding: '16px' }}>
-              <p className="eyebrow" style={{ marginBottom: '8px' }}>Pendiente de cobrar</p>
-              <p style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--amber)', margin: '0' }}>
+            <div className="card px-4 py-4">
+              <p className="eyebrow mb-2">Pendiente de cobrar</p>
+              <p className="text-[18px] font-bold text-[var(--amber)] m-0">
                 {formatMonto(proyeccion.pendiente)}
               </p>
-              <p style={{ fontSize: '12px', color: 'var(--ink-3)', margin: '4px 0 0 0' }}>
+              <p className="text-[12px] text-[var(--ink-3)] mt-1 mb-0">
                 {delMes.filter(p => p.estado !== 'pagada').length} prestaciones
               </p>
             </div>
           </div>
 
           {/* Cobros recibidos en el mes */}
-          <div style={{
-            background: 'var(--surface)',
-            borderRadius: 'var(--radius-lg)',
-            border: '1px solid var(--green)',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-            padding: '16px',
-            marginBottom: '20px',
-          }}>
-            <p style={{ fontSize: '12px', color: 'var(--green)', fontWeight: 600, margin: '0 0 4px 0' }}>
+          <div className="bg-[var(--surface)] rounded-[var(--radius-lg)] border border-[var(--green)] shadow-sm px-4 py-4 mb-5">
+            <p className="text-[12px] text-[var(--green)] font-semibold mb-1 mt-0">
               Dinero recibido en {getNombreMes(mesSeleccionado).split(' ')[0]}
             </p>
-            <p style={{ fontSize: '24px', fontWeight: 'bold', color: 'var(--green)', margin: '0 0 4px 0' }}>
+            <p className="text-[24px] font-bold text-[var(--green)] mb-1 mt-0">
               {formatMonto(cobradoEnMes)}
             </p>
-            <p style={{ fontSize: '12px', color: 'var(--ink-3)', margin: 0 }}>
+            <p className="text-[12px] text-[var(--ink-3)] m-0">
               {pagadasDelMes.length} pagos ingresados a tu cuenta
             </p>
           </div>
 
           {/* Desglose por institución */}
           {instEntries.length > 0 && (
-            <div className="card" style={{ padding: '16px' }}>
-              <h2 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--ink-2)', marginBottom: '16px', margin: 0 }}>
+            <div className="card px-4 py-4">
+              <h2 className="text-[14px] font-semibold text-[var(--ink-2)] mb-4 mt-0">
                 Por institución
               </h2>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div className="flex flex-col gap-3">
                 {instEntries.map(([nombre, datos]) => {
                   const pct = proyeccion.totalBruto > 0 ? (datos.bruto / proyeccion.totalBruto) * 100 : 0
                   return (
                     <div key={nombre}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                      <div className="flex justify-between items-center mb-1">
                         <div>
-                          <p style={{ fontSize: '14px', fontWeight: 500, color: 'var(--ink-2)', margin: 0 }}>
+                          <p className="text-[14px] font-medium text-[var(--ink-2)] m-0">
                             {nombre}
                           </p>
-                          <p style={{ fontSize: '12px', color: 'var(--ink-3)', margin: '4px 0 0 0' }}>
+                          <p className="text-[12px] text-[var(--ink-3)] mt-1 mb-0">
                             {datos.count} prestaciones
                           </p>
                         </div>
-                        <div style={{ textAlign: 'right' }}>
-                          <p style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--ink)', margin: 0 }}>
+                        <div className="text-right">
+                          <p className="text-[14px] font-bold text-[var(--ink)] m-0">
                             {formatMonto(datos.neto)}
                           </p>
-                          <p style={{ fontSize: '12px', color: 'var(--ink-3)', margin: '4px 0 0 0' }}>neto</p>
+                          <p className="text-[12px] text-[var(--ink-3)] mt-1 mb-0">neto</p>
                         </div>
                       </div>
-                      <div style={{
-                        background: 'var(--bg)',
-                        borderRadius: '999px',
-                        height: '6px',
-                      }}>
+                      <div className="bg-[var(--bg)] rounded-full h-1.5">
                         <div
-                          style={{
-                            background: 'var(--ink)',
-                            borderRadius: '999px',
-                            height: '6px',
-                            transition: 'all 0.3s',
-                            width: `${pct}%`,
-                          }}
+                          className="bg-[var(--ink)] rounded-full h-1.5 transition-all duration-300"
+                          style={{ width: `${pct}%` }}
                         />
                       </div>
                     </div>

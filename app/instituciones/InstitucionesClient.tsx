@@ -139,12 +139,12 @@ export default function InstitucionesClient({ instituciones: init, reglas: initR
 
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 style={{ fontSize: '20px', fontWeight: 'bold', color: 'var(--ink)', margin: 0 }}>
+          <h1 className="text-[20px] font-bold text-[var(--ink)] m-0">
             Lugares de trabajo
           </h1>
-          <p style={{ fontSize: '14px', color: 'var(--ink-3)', marginTop: '4px', margin: 0 }}>
+          <p className="text-[14px] text-[var(--ink-3)] mt-1 m-0">
             Instituciones y plazos de cobro
           </p>
         </div>
@@ -155,18 +155,11 @@ export default function InstitucionesClient({ instituciones: init, reglas: initR
 
       {/* Formulario nueva institución */}
       {showFormInstitucion && (
-        <div style={{
-          background: 'var(--surface)',
-          borderRadius: 'var(--radius-lg)',
-          border: '1px solid var(--line)',
-          padding: '16px',
-          marginBottom: '16px',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-        }}>
-          <h3 style={{ fontWeight: 600, color: 'var(--ink)', marginBottom: '16px', margin: 0 }}>
+        <div className="bg-[var(--surface)] rounded-[var(--radius-lg)] border border-[var(--line)] px-4 py-4 mb-4 shadow-sm">
+          <h3 className="font-semibold text-[var(--ink)] mb-4 m-0">
             Nueva institución
           </h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div className="flex flex-col gap-3">
             <Input
               label="Nombre"
               placeholder="Clínica Las Condes, Hospital DIPRECA..."
@@ -180,21 +173,15 @@ export default function InstitucionesClient({ instituciones: init, reglas: initR
               onChange={e => setRutInst(e.target.value)}
             />
             {error && (
-              <div style={{
-                background: 'var(--red-weak)',
-                color: 'var(--red)',
-                fontSize: '14px',
-                borderRadius: '8px',
-                padding: '8px 12px',
-              }}>
+              <div className="bg-[var(--red-weak)] text-[var(--red)] text-[14px] rounded-lg px-3 py-2">
                 {error}
               </div>
             )}
-            <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
-              <Button onClick={crearInstitucion} loading={loading} style={{ flex: 1 }}>
+            <div className="flex gap-2 mt-2">
+              <Button onClick={crearInstitucion} loading={loading} className="flex-1">
                 Guardar
               </Button>
-              <Button variant="secondary" onClick={() => setShowFormInstitucion(false)} style={{ flex: 1 }}>
+              <Button variant="secondary" onClick={() => setShowFormInstitucion(false)} className="flex-1">
                 Cancelar
               </Button>
             </div>
@@ -204,127 +191,76 @@ export default function InstitucionesClient({ instituciones: init, reglas: initR
 
       {/* Lista de instituciones */}
       {instituciones.length === 0 ? (
-        <div style={{ textAlign: 'center', paddingTop: '64px', paddingBottom: '64px', color: 'var(--ink-3)' }}>
-          <Building2 size={40} style={{ margin: '0 auto 12px', opacity: 0.3 }} />
-          <p style={{ fontWeight: 500, margin: '8px 0 0 0' }}>Sin instituciones</p>
-          <p style={{ fontSize: '14px', margin: '0' }}>Agrega tus clínicas u hospitales</p>
+        <div className="text-center py-16 text-[var(--ink-3)]">
+          <Building2 size={40} className="mx-auto mb-3 opacity-30" />
+          <p className="font-medium mt-2 mb-0">Sin instituciones</p>
+          <p className="text-[14px] m-0">Agrega tus clínicas u hospitales</p>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div className="flex flex-col gap-3">
           {instituciones.map(inst => {
             const expanded = expandedId === inst.id
             const reglasInst = reglasDeInstitucion(inst.id)
             return (
               <div
                 key={inst.id}
-                style={{
-                  background: 'var(--surface)',
-                  borderRadius: 'var(--radius-lg)',
-                  border: '1px solid var(--line)',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-                  overflow: 'hidden',
-                }}
+                className="bg-[var(--surface)] rounded-[var(--radius-lg)] border border-[var(--line)] shadow-sm overflow-hidden"
               >
                 <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '16px',
-                    cursor: 'pointer',
-                  }}
+                  className="flex items-center justify-between px-4 py-4 cursor-pointer"
                   onClick={() => setExpandedId(expanded ? null : inst.id)}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div style={{
-                      width: '36px',
-                      height: '36px',
-                      background: 'var(--accent-weak)',
-                      borderRadius: '12px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}>
-                      <Building2 size={18} style={{ color: 'var(--accent-strong)' }} />
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 bg-[var(--accent-weak)] rounded-xl flex items-center justify-center">
+                      <Building2 size={18} className="text-[var(--accent-strong)]" />
                     </div>
                     <div>
-                      <p style={{ fontWeight: 600, color: 'var(--ink)', margin: 0 }}>{inst.nombre}</p>
-                      {inst.rut && <p style={{ fontSize: '12px', color: 'var(--ink-3)', margin: '4px 0 0 0' }}>RUT {inst.rut}</p>}
-                      <p style={{ fontSize: '12px', color: 'var(--ink-3)', margin: '0' }}>
+                      <p className="font-semibold text-[var(--ink)] m-0">{inst.nombre}</p>
+                      {inst.rut && <p className="text-[12px] text-[var(--ink-3)] mt-1 mb-0">RUT {inst.rut}</p>}
+                      <p className="text-[12px] text-[var(--ink-3)] m-0">
                         {reglasInst.length} {reglasInst.length === 1 ? 'regla' : 'reglas'} de plazo
                       </p>
                     </div>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div className="flex items-center gap-2">
                     <button
                       onClick={(e) => { e.stopPropagation(); eliminarInstitucion(inst.id) }}
-                      style={{
-                        padding: '6px',
-                        color: 'var(--ink-4)',
-                        borderRadius: '8px',
-                        cursor: 'pointer',
-                        transition: 'all 0.15s',
-                      }}
-                      onMouseEnter={(e) => {
-                        (e.target as HTMLElement).style.color = 'var(--red)';
-                        (e.target as HTMLElement).style.background = 'var(--red-weak)';
-                      }}
-                      onMouseLeave={(e) => {
-                        (e.target as HTMLElement).style.color = 'var(--ink-4)';
-                        (e.target as HTMLElement).style.background = 'transparent';
-                      }}
+                      className="p-1.5 text-[var(--ink-4)] rounded-lg cursor-pointer transition-all duration-150 hover:text-[var(--red)] hover:bg-[var(--red-weak)]"
                     >
                       <Trash2 size={15} />
                     </button>
                     {expanded ? (
-                      <ChevronUp size={16} style={{ color: 'var(--ink-3)' }} />
+                      <ChevronUp size={16} className="text-[var(--ink-3)]" />
                     ) : (
-                      <ChevronDown size={16} style={{ color: 'var(--ink-3)' }} />
+                      <ChevronDown size={16} className="text-[var(--ink-3)]" />
                     )}
                   </div>
                 </div>
 
                 {/* Reglas de plazo */}
                 {expanded && (
-                  <div style={{ borderTop: '1px solid var(--line)', padding: '0 16px 16px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 0' }}>
-                      <p style={{ fontSize: '14px', fontWeight: 600, color: 'var(--ink-2)', margin: 0 }}>
+                  <div className="border-t border-[var(--line)] px-4 pb-4">
+                    <div className="flex items-center justify-between py-3">
+                      <p className="text-[14px] font-semibold text-[var(--ink-2)] m-0">
                         Reglas de plazo
                       </p>
                       <button
                         onClick={() => setShowFormRegla(showFormRegla === inst.id ? null : inst.id)}
-                        style={{
-                          fontSize: '12px',
-                          color: 'var(--accent)',
-                          fontWeight: 500,
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                          cursor: 'pointer',
-                          padding: '4px 8px',
-                        }}
+                        className="text-[12px] text-[var(--accent)] font-medium flex items-center gap-1 cursor-pointer px-2 py-1"
                       >
                         <Plus size={13} /> Agregar regla
                       </button>
                     </div>
 
                     {showFormRegla === inst.id && (
-                      <div style={{
-                        background: 'var(--bg)',
-                        borderRadius: '12px',
-                        padding: '12px',
-                        marginBottom: '12px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '12px',
-                      }}>
+                      <div className="bg-[var(--bg)] rounded-xl p-3 mb-3 flex flex-col gap-3">
                         <Input
                           label="Tipo de prestación"
                           placeholder="Cirugía, Endoscopia, Turno..."
                           value={tipoPrestacion}
                           onChange={e => setTipoPrestacion(e.target.value)}
                         />
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                        <div className="grid grid-cols-2 gap-2">
                           <Input
                             label="Días para emitir boleta"
                             type="number"
@@ -342,11 +278,11 @@ export default function InstitucionesClient({ instituciones: init, reglas: initR
                             hint="Desde la boleta"
                           />
                         </div>
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                          <Button size="sm" onClick={() => crearRegla(inst.id)} loading={loading} style={{ flex: 1 }}>
+                        <div className="flex gap-2">
+                          <Button size="sm" onClick={() => crearRegla(inst.id)} loading={loading} className="flex-1">
                             Guardar
                           </Button>
-                          <Button size="sm" variant="secondary" onClick={() => setShowFormRegla(null)} style={{ flex: 1 }}>
+                          <Button size="sm" variant="secondary" onClick={() => setShowFormRegla(null)} className="flex-1">
                             Cancelar
                           </Button>
                         </div>
@@ -354,48 +290,27 @@ export default function InstitucionesClient({ instituciones: init, reglas: initR
                     )}
 
                     {reglasInst.length === 0 ? (
-                      <p style={{ fontSize: '14px', color: 'var(--ink-3)', padding: '8px 0', margin: 0 }}>
+                      <p className="text-[14px] text-[var(--ink-3)] py-2 m-0">
                         Sin reglas configuradas
                       </p>
                     ) : (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <div className="flex flex-col gap-2">
                         {reglasInst.map(regla => (
                           <div
                             key={regla.id}
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'space-between',
-                              background: 'var(--bg)',
-                              borderRadius: '12px',
-                              padding: '10px 12px',
-                            }}
+                            className="flex items-center justify-between bg-[var(--bg)] rounded-xl px-3 py-2.5"
                           >
                             <div>
-                              <p style={{ fontSize: '14px', fontWeight: 500, color: 'var(--ink-2)', margin: 0 }}>
+                              <p className="text-[14px] font-medium text-[var(--ink-2)] m-0">
                                 {regla.tipo_prestacion_nombre}
                               </p>
-                              <p style={{ fontSize: '12px', color: 'var(--ink-3)', margin: '4px 0 0 0' }}>
+                              <p className="text-[12px] text-[var(--ink-3)] mt-1 mb-0">
                                 Boleta en {regla.dias_emitir_boleta}d · Cobro en {regla.dias_recibir_pago}d
                               </p>
                             </div>
                             <button
                               onClick={() => eliminarRegla(regla.id)}
-                              style={{
-                                padding: '6px',
-                                color: 'var(--ink-4)',
-                                borderRadius: '8px',
-                                cursor: 'pointer',
-                                transition: 'all 0.15s',
-                              }}
-                              onMouseEnter={(e) => {
-                                (e.target as HTMLElement).style.color = 'var(--red)';
-                                (e.target as HTMLElement).style.background = 'var(--red-weak)';
-                              }}
-                              onMouseLeave={(e) => {
-                                (e.target as HTMLElement).style.color = 'var(--ink-4)';
-                                (e.target as HTMLElement).style.background = 'transparent';
-                              }}
+                              className="p-1.5 text-[var(--ink-4)] rounded-lg cursor-pointer transition-all duration-150 hover:text-[var(--red)] hover:bg-[var(--red-weak)]"
                             >
                               <Trash2 size={13} />
                             </button>

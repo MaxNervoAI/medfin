@@ -52,7 +52,7 @@ export default function PrestacionDetalle({ prestacion: p, onClose, onBoletaEmit
             <h2 className="text-lg font-bold text-slate-900">{p.institucion_nombre}</h2>
             <p className="text-slate-500 text-sm">{p.tipo_prestacion} · {formatFechaCorta(p.fecha_prestacion)}</p>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-xl">
+          <button onClick={onClose} className="p-3 hover:bg-slate-100 rounded-xl min-h-[44px] min-w-[44px] flex items-center justify-center">
             <X size={18} className="text-slate-500" />
           </button>
         </div>

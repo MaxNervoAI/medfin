@@ -120,7 +120,7 @@ export default function NuevaPrestacionForm({ instituciones, reglas }: Props) {
   return (
     <div>
       <div className="flex items-center gap-3 mb-6">
-        <button onClick={() => router.back()} className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
+        <button onClick={() => router.back()} className="p-3 hover:bg-slate-100 rounded-xl transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center">
           <ArrowLeft size={18} className="text-slate-600" />
         </button>
         <div>

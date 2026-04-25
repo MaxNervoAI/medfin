@@ -24,40 +24,24 @@ function AlertaItem({ alerta, onOpen }: { alerta: Alerta; onOpen?: (p: Prestacio
   return (
     <button
       onClick={() => onOpen?.({} as Prestacion)}
-      style={{
-        width: '100%',
-        textAlign: 'left',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '14px',
-        padding: '14px 20px',
-        borderBottom: '1px solid var(--line)',
-        background: 'transparent',
-        cursor: 'pointer',
-        fontSize: '13.5px',
-      }}
+      className="w-full text-left flex items-center gap-3.5 px-5 py-3.5 border-b border-[var(--line)] bg-transparent cursor-pointer text-[13.5px]"
     >
-      <div style={{
-        width: '4px',
-        alignSelf: 'stretch',
-        borderRadius: '4px',
-        background: cfg.variant === 'danger' ? 'var(--red)' : 'var(--amber)',
-      }} />
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontWeight: 600, letterSpacing: '-0.01em' }}>{alerta.institucion_nombre}</div>
-        <div style={{ fontSize: '12px', color: 'var(--ink-3)', marginTop: '2px' }}>
+      <div className={`w-1 self-stretch rounded ${cfg.variant === 'danger' ? 'bg-[var(--red)]' : 'bg-[var(--amber)]'}`} />
+      <div className="flex-1 min-w-0">
+        <div className="font-semibold tracking-[-0.01em]">{alerta.institucion_nombre}</div>
+        <div className="text-[12px] text-[var(--ink-3)] mt-0.5">
           {alerta.tipo_prestacion}{/* {p.paciente ? ` · ${p.paciente}` : ''} */}
         </div>
       </div>
-      <div style={{ textAlign: 'right' }}>
-        <div className="serif num" style={{ fontSize: '18px', letterSpacing: '-0.01em' }}>
+      <div className="text-right">
+        <div className="serif num text-[18px] tracking-[-0.01em]">
           {formatMonto(alerta.monto_bruto)}
         </div>
-        <div style={{ fontSize: '11px', color: 'var(--ink-3)', marginTop: '2px' }}>
+        <div className="text-[11px] text-[var(--ink-3)] mt-0.5">
           {formatFecha(alerta.fecha_limite)}
         </div>
       </div>
-      <span className={`badge ${cfg.variant}`} style={{ whiteSpace: 'nowrap' }}>
+      <span className={`badge ${cfg.variant} whitespace-nowrap`}>
         <span className="dot" />
         {cfg.tag}
       </span>
@@ -98,65 +82,37 @@ function ProyeccionChart({ prestaciones }: { prestaciones: Prestacion[] }) {
   const currentKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`
 
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-end', gap: '14px', height: '180px', padding: '8px 4px 0' }}>
+    <div className="flex items-end gap-3.5 h-[180px] px-1 pt-2">
       {months.map(m => {
         const cobH = (m.cobrado / max) * 140
         const proH = (m.proyectado / max) * 140
         const isCurrent = m.key === currentKey
         return (
-          <div key={m.key} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: '10px' }}>
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', gap: '2px' }}>
-              <div style={{
-                fontSize: '10.5px',
-                color: 'var(--ink-3)',
-                textAlign: 'center',
-                fontVariantNumeric: 'tabular-nums',
-                marginBottom: '4px',
-              }}>
+          <div key={m.key} className="flex-1 flex flex-col items-stretch gap-2.5">
+            <div className="flex-1 flex flex-col justify-end gap-0.5">
+              <div className="text-[10.5px] text-[var(--ink-3)] text-center tabular-nums mb-1">
                 {m.total > 0 ? formatMonto(m.total / 1000).replace('$', '') + 'k' : ''}
               </div>
               {proH > 0 && (
-                <div style={{
-                  height: proH,
-                  background: 'var(--accent-weak)',
-                  borderTopLeftRadius: '4px',
-                  borderTopRightRadius: '4px',
-                  border: '1px dashed var(--accent)',
-                  borderBottom: 0,
-                }} />
+                <div
+                  style={{ height: proH }}
+                  className="bg-[var(--accent-weak)] rounded-t border border-dashed border-[var(--accent)] border-b-0"
+                />
               )}
               {cobH > 0 && (
-                <div style={{
-                  height: cobH,
-                  background: 'var(--ink)',
-                  borderRadius: proH > 0 ? 0 : '4px 4px 0 0',
-                }} />
+                <div
+                  style={{ height: cobH }}
+                  className={`bg-[var(--ink)] ${proH > 0 ? 'rounded-none' : 'rounded-t'}`}
+                />
               )}
               {m.total === 0 && (
-                <div style={{ height: '2px', background: 'var(--line)' }} />
+                <div className="h-0.5 bg-[var(--line)]" />
               )}
             </div>
-            <div style={{
-              textAlign: 'center',
-              fontSize: '11.5px',
-              fontWeight: isCurrent ? 600 : 400,
-              color: isCurrent ? 'var(--ink)' : 'var(--ink-3)',
-              textTransform: 'capitalize',
-              paddingTop: '6px',
-              borderTop: '1px solid var(--line)',
-              position: 'relative',
-            }}>
+            <div className={`text-center text-[11.5px] ${isCurrent ? 'font-semibold' : 'font-normal'} ${isCurrent ? 'text-[var(--ink)]' : 'text-[var(--ink-3)]'} capitalize pt-1.5 border-t border-[var(--line)] relative`}>
               {m.label}
               {isCurrent && (
-                <div style={{
-                  position: 'absolute',
-                  top: '-1px',
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  width: '24px',
-                  height: '2px',
-                  background: 'var(--ink)',
-                }} />
+                <div className="absolute -top-px left-1/2 -translate-x-1/2 w-6 h-0.5 bg-[var(--ink)]" />
               )}
             </div>
           </div>
@@ -168,16 +124,11 @@ function ProyeccionChart({ prestaciones }: { prestaciones: Prestacion[] }) {
 
 function Stat({ eyebrow, value, sub, accent }: { eyebrow: string; value: string; sub: string; accent?: string }) {
   return (
-    <div style={{ padding: '22px 22px 20px' }}>
-      <div className="eyebrow" style={{ marginBottom: '14px' }}>{eyebrow}</div>
-      <div className="serif num" style={{
-        fontSize: '42px',
-        lineHeight: 1,
-        letterSpacing: '-0.02em',
-        color: accent || 'var(--ink)',
-      }}>{value}</div>
+    <div className="px-5.5 py-5.5">
+      <div className="eyebrow mb-3.5">{eyebrow}</div>
+      <div className={`serif num text-[42px] leading-none tracking-[-0.02em] ${accent || 'text-[var(--ink)]'}`}>{value}</div>
       {sub && (
-        <div style={{ fontSize: '12px', color: 'var(--ink-3)', marginTop: '10px' }}>{sub}</div>
+        <div className="text-[12px] text-[var(--ink-3)] mt-2.5">{sub}</div>
       )}
     </div>
   )
@@ -203,24 +154,18 @@ export default function DashboardClient({ nombre, prestaciones }: Props) {
   const primerNombre = nombre.split(' ')[0]
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
+    <div className="flex flex-col gap-0">
       {/* Greeting */}
-      <div style={{ display: 'flex', alignItems: 'flex-end', marginBottom: '28px', gap: '20px', flexWrap: 'wrap' }}>
-        <div style={{ flex: '1 1 320px', minWidth: 0 }}>
-          <div className="eyebrow" style={{ marginBottom: '6px' }}>{monthName}</div>
-          <h1 style={{
-            margin: 0,
-            fontFamily: "'Instrument Serif', serif",
-            fontSize: '34px',
-            letterSpacing: '-0.02em',
-            lineHeight: 1.1,
-          }}>
-            Hola, {primerNombre}. <span style={{ color: 'var(--ink-3)', fontStyle: 'italic' }}>
+      <div className="flex items-end mb-7 gap-5 flex-wrap">
+        <div className="flex-1 min-w-[320px]">
+          <div className="eyebrow mb-1.5">{monthName}</div>
+          <h1 className="m-0 font-serif text-[34px] tracking-[-0.02em] leading-[1.1]">
+            Hola, {primerNombre}. <span className="text-[var(--ink-3)] italic">
               Tienes {alertas.length} asuntos por revisar.
             </span>
           </h1>
         </div>
-        <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+        <div className="flex gap-2 flex-shrink-0">
           <button className="btn btn-ghost">
             📅 Este mes
           </button>
@@ -231,41 +176,28 @@ export default function DashboardClient({ nombre, prestaciones }: Props) {
       </div>
 
       {/* Stat grid */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-        gap: '1px',
-        background: 'var(--line)',
-        border: '1px solid var(--line)',
-        borderRadius: '18px',
-        overflow: 'hidden',
-        marginBottom: '24px',
-      }}>
-        <div style={{ background: 'var(--surface)', minWidth: 0 }}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-[var(--line)] border border-[var(--line)] rounded-[18px] overflow-hidden mb-6">
+        <div className="bg-[var(--surface)] min-w-0">
           <Stat eyebrow="Por cobrar" value={formatMonto(porCobrar)} sub={`${sinBoleta + boletaEmitida} prestaciones abiertas`} />
         </div>
-        <div style={{ background: 'var(--surface)', minWidth: 0 }}>
+        <div className="bg-[var(--surface)] min-w-0">
           <Stat eyebrow="Cobrado este mes" value={formatMonto(cobradoMes)} sub="neto recibido" />
         </div>
-        <div style={{ background: 'var(--surface)', minWidth: 0 }}>
+        <div className="bg-[var(--surface)] min-w-0">
           <Stat eyebrow="Sin boleta" value={sinBoleta.toString()} sub="pendientes de emitir" accent="var(--amber)" />
         </div>
-        <div style={{ background: 'var(--surface)', minWidth: 0 }}>
+        <div className="bg-[var(--surface)] min-w-0">
           <Stat eyebrow="Boleta emitida" value={boletaEmitida.toString()} sub="esperando pago" accent="var(--accent-strong)" />
         </div>
       </div>
 
       {/* Two-column grid */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
-        gap: '20px',
-      }}>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Alertas */}
         <div className="card">
           <div className="card-head">
             <h3>Alertas · {alertas.length}</h3>
-            <div style={{ marginLeft: 'auto' }}>
+            <div className="ml-auto">
               <Link href="/prestaciones" className="btn btn-ghost btn-sm">
                 Ver cobranzas <ArrowRight size={12} />
               </Link>
@@ -273,11 +205,11 @@ export default function DashboardClient({ nombre, prestaciones }: Props) {
           </div>
           <div>
             {alertas.length === 0 && (
-              <div style={{ padding: '48px 20px', textAlign: 'center', color: 'var(--ink-3)' }}>
-                <div className="serif" style={{ fontSize: '24px', color: 'var(--ink-2)', fontStyle: 'italic' }}>
+              <div className="px-5 py-12 text-center text-[var(--ink-3)]">
+                <div className="serif text-[24px] text-[var(--ink-2)] italic">
                   Todo al día
                 </div>
-                <div style={{ fontSize: '12.5px', marginTop: '6px' }}>
+                <div className="text-[12.5px] mt-1.5">
                   No hay boletas ni pagos por vencer
                 </div>
               </div>
@@ -296,13 +228,13 @@ export default function DashboardClient({ nombre, prestaciones }: Props) {
           </div>
           <div className="card-body">
             <ProyeccionChart prestaciones={prestaciones} />
-            <div style={{ display: 'flex', gap: '18px', marginTop: '14px', fontSize: '11.5px', color: 'var(--ink-3)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ width: '10px', height: '10px', background: 'var(--ink)', borderRadius: '2px' }} />
+            <div className="flex gap-4.5 mt-3.5 text-[11.5px] text-[var(--ink-3)]">
+              <div className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 bg-[var(--ink)] rounded-[2px]" />
                 Cobrado
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ width: '10px', height: '10px', background: 'var(--accent-weak)', border: '1px dashed var(--accent)', borderRadius: '2px' }} />
+              <div className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 bg-[var(--accent-weak)] border border-dashed border-[var(--accent)] rounded-[2px]" />
                 Proyectado
               </div>
             </div>
@@ -311,33 +243,24 @@ export default function DashboardClient({ nombre, prestaciones }: Props) {
       </div>
 
       {/* Últimos movimientos */}
-      <div style={{ marginTop: '20px' }}>
+      <div className="mt-5">
         <div className="card">
           <div className="card-head">
             <h3>Últimos movimientos</h3>
-            <div style={{ marginLeft: 'auto' }}>
+            <div className="ml-auto">
               <Link href="/prestaciones" className="btn btn-ghost btn-sm">
                 Ver todo
               </Link>
             </div>
           </div>
-          <table style={{
-            width: '100%',
-            borderCollapse: 'collapse',
-            fontSize: '13px',
-          }}>
+          <table className="w-full border-collapse text-[13px]">
             <thead>
-              <tr style={{
-                color: 'var(--ink-3)',
-                fontSize: '11px',
-                textTransform: 'uppercase',
-                letterSpacing: '0.08em',
-              }}>
-                <th style={{ textAlign: 'left', padding: '10px 20px', fontWeight: 600 }}>Fecha</th>
-                <th style={{ textAlign: 'left', padding: '10px 12px', fontWeight: 600 }}>Institución</th>
-                <th style={{ textAlign: 'left', padding: '10px 12px', fontWeight: 600 }}>Prestación</th>
-                <th style={{ textAlign: 'right', padding: '10px 12px', fontWeight: 600 }}>Monto</th>
-                <th style={{ textAlign: 'left', padding: '10px 12px', fontWeight: 600 }}>Estado</th>
+              <tr className="text-[var(--ink-3)] text-[11px] uppercase tracking-[0.08em]">
+                <th className="text-left px-5 py-2.5 font-semibold">Fecha</th>
+                <th className="text-left px-3 py-2.5 font-semibold">Institución</th>
+                <th className="text-left px-3 py-2.5 font-semibold">Prestación</th>
+                <th className="text-right px-3 py-2.5 font-semibold">Monto</th>
+                <th className="text-left px-3 py-2.5 font-semibold">Estado</th>
               </tr>
             </thead>
             <tbody>
@@ -354,35 +277,21 @@ export default function DashboardClient({ nombre, prestaciones }: Props) {
                   return (
                     <tr
                       key={p.id}
-                      style={{
-                        borderTop: '1px solid var(--line)',
-                        cursor: 'pointer',
-                      }}
-                      onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg)')}
-                      onMouseLeave={e => (e.currentTarget.style.background = '')}
+                      className="border-t border-[var(--line)] cursor-pointer hover:bg-[var(--bg)] transition-colors"
                     >
-                      <td style={{
-                        padding: '12px 20px',
-                        fontVariantNumeric: 'tabular-nums',
-                        color: 'var(--ink-2)',
-                      }}>
+                      <td className="px-5 py-3 tabular-nums text-[var(--ink-2)]">
                         {new Date(p.fecha_prestacion).toLocaleDateString('es-CL')}
                       </td>
-                      <td style={{ padding: '12px' }}>
-                        <b style={{ fontWeight: 500 }}>{p.institucion_nombre}</b>
+                      <td className="px-3 py-3">
+                        <b className="font-medium">{p.institucion_nombre}</b>
                       </td>
-                      <td style={{ padding: '12px', color: 'var(--ink-2)' }}>
+                      <td className="px-3 py-3 text-[var(--ink-2)]">
                         {p.tipo_prestacion}
                       </td>
-                      <td style={{
-                        padding: '12px',
-                        textAlign: 'right',
-                        fontVariantNumeric: 'tabular-nums',
-                        fontSize: '16px',
-                      }}>
+                      <td className="px-3 py-3 text-right tabular-nums text-[16px]">
                         {formatMonto(p.monto_bruto)}
                       </td>
-                      <td style={{ padding: '12px' }}>
+                      <td className="px-3 py-3">
                         <span className={`badge ${estadoBadge}`}>
                           <span className="dot" />
                           {p.estado === 'pagada'
