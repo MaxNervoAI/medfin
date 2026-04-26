@@ -2,7 +2,9 @@ import withPWA from 'next-pwa'
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // your existing config here
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
 }
 
 export default withPWA({

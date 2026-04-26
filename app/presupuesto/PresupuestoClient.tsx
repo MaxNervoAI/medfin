@@ -1,9 +1,17 @@
 'use client'
 
 import { useState } from 'react'
-import { getMesActual, getNombreMes, formatMonto } from '@/lib/utils'
+import { getMesActual, getNombreMes } from '@/lib/utils'
 import type { Prestacion } from '@/types'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, TrendingUp } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Progress } from '@/components/ui/progress'
+import { Separator } from '@/components/ui/separator'
+import { Money } from '@/components/ui/Money'
+import { StatCard } from '@/components/ui/StatCard'
+import { EmptyState } from '@/components/ui/EmptyState'
+import { PageHeader } from '@/components/ui/PageHeader'
 
 interface Props {
   prestaciones: Prestacion[]
@@ -11,8 +19,7 @@ interface Props {
 
 function getMeses(prestaciones: Prestacion[]): string[] {
   const meses = new Set<string>()
-  const hoy = getMesActual()
-  meses.add(hoy)
+  meses.add(getMesActual())
   prestaciones.forEach(p => meses.add(p.fecha_prestacion.substring(0, 7)))
   return Array.from(meses).sort().reverse()
 }
@@ -25,7 +32,6 @@ export default function PresupuestoClient({ prestaciones }: Props) {
   const delMes = prestaciones.filter(p => p.fecha_prestacion.startsWith(mesSeleccionado))
   const pagadasDelMes = prestaciones.filter(p => p.fecha_pago_recibido?.startsWith(mesSeleccionado))
 
-  // Proyección: lo que se espera cobrar por prestaciones de este mes
   const proyeccion = {
     totalBruto: delMes.reduce((s, p) => s + p.monto_bruto, 0),
     totalNeto: delMes.reduce((s, p) => s + p.monto_neto, 0),
@@ -33,10 +39,8 @@ export default function PresupuestoClient({ prestaciones }: Props) {
     pendiente: delMes.filter(p => p.estado !== 'pagada').reduce((s, p) => s + p.monto_neto, 0),
   }
 
-  // Cobros reales recibidos en este mes (independiente de cuándo fue la prestación)
   const cobradoEnMes = pagadasDelMes.reduce((s, p) => s + p.monto_neto, 0)
 
-  // Desglose por institución
   const porInstitucion = delMes.reduce<Record<string, { bruto: number; neto: number; count: number }>>((acc, p) => {
     if (!acc[p.institucion_nombre]) acc[p.institucion_nombre] = { bruto: 0, neto: 0, count: 0 }
     acc[p.institucion_nombre].bruto += p.monto_bruto
@@ -46,147 +50,127 @@ export default function PresupuestoClient({ prestaciones }: Props) {
   }, {})
 
   const instEntries = Object.entries(porInstitucion).sort((a, b) => b[1].bruto - a[1].bruto)
-  const pctCobrado = proyeccion.totalNeto > 0 ? (proyeccion.pagado / proyeccion.totalNeto) * 100 : 0
+  const pctCobrado = proyeccion.totalNeto > 0 ? Math.min((proyeccion.pagado / proyeccion.totalNeto) * 100, 100) : 0
+  const mesLabel = getNombreMes(mesSeleccionado).split(' ')[0]
 
   return (
-    <div>
-      {/* Header con navegación de meses */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-[20px] font-bold text-[var(--ink)] m-0">
-            Presupuesto
-          </h1>
-          <p className="text-[14px] text-[var(--ink-3)] mt-1 m-0">
-            Proyección de ingresos
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setMesIdx(i => Math.min(i + 1, meses.length - 1))}
-            disabled={mesIdx >= meses.length - 1}
-            className={`p-2 rounded-xl transition-all duration-150 ${
-              mesIdx >= meses.length - 1 ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer hover:bg-[var(--bg)]'
-            }`}
-          >
-            <ChevronLeft size={18} className="text-[var(--ink-2)]" />
-          </button>
-          <span className="text-[14px] font-semibold text-[var(--ink-2)] capitalize min-w-[110px] text-center">
-            {getNombreMes(mesSeleccionado).split(' ')[0]}
-          </span>
-          <button
-            onClick={() => setMesIdx(i => Math.max(i - 1, 0))}
-            disabled={mesIdx <= 0}
-            className={`p-2 rounded-xl transition-all duration-150 ${
-              mesIdx <= 0 ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer hover:bg-[var(--bg)]'
-            }`}
-          >
-            <ChevronRight size={18} className="text-[var(--ink-2)]" />
-          </button>
-        </div>
-      </div>
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        title="Presupuesto"
+        subtitle="Proyección de ingresos por mes"
+        actions={
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-8"
+              onClick={() => setMesIdx(i => Math.min(i + 1, meses.length - 1))}
+              disabled={mesIdx >= meses.length - 1}
+              aria-label="Mes anterior"
+            >
+              <ChevronLeft className="size-4" />
+            </Button>
+            <span className="text-sm font-semibold text-foreground capitalize min-w-[100px] text-center">
+              {mesLabel}
+            </span>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-8"
+              onClick={() => setMesIdx(i => Math.max(i - 1, 0))}
+              disabled={mesIdx <= 0}
+              aria-label="Mes siguiente"
+            >
+              <ChevronRight className="size-4" />
+            </Button>
+          </div>
+        }
+      />
 
       {delMes.length === 0 ? (
-        <div className="text-center py-16 text-[var(--ink-3)]">
-          <p className="font-medium mb-2 mt-0">Sin prestaciones este mes</p>
-          <p className="text-[14px] m-0">Registra prestaciones para ver la proyección</p>
-        </div>
+        <EmptyState
+          icon={<TrendingUp />}
+          title="Sin prestaciones este mes"
+          description="Registra prestaciones para ver la proyección"
+        />
       ) : (
         <>
-          {/* Tarjeta principal */}
-          <div className="bg-gradient-to-br from-[var(--accent)] to-[var(--accent-strong)] rounded-[var(--radius-lg)] px-5 py-5 text-white mb-5 shadow-lg">
-            <p className="text-white/80 text-[14px] mb-1 mt-0">
-              Total esperado (neto)
-            </p>
-            <p className="text-[28px] font-bold mb-4 mt-0">
-              {formatMonto(proyeccion.totalNeto)}
-            </p>
+          {/* Hero card */}
+          <Card className="bg-primary text-primary-foreground border-0 shadow-md">
+            <CardContent className="pt-5 pb-4">
+              <p className="text-primary-foreground/70 text-xs font-medium uppercase tracking-wide mb-1">
+                Total esperado · neto
+              </p>
+              <Money value={proyeccion.totalNeto} size="xl" className="text-primary-foreground" />
+              <div className="mt-4 space-y-1.5">
+                <Progress
+                  value={pctCobrado}
+                  className="h-2 bg-primary-foreground/20 [&>div]:bg-primary-foreground"
+                />
+                <div className="flex justify-between text-xs text-primary-foreground/70">
+                  <span>Cobrado: <Money value={proyeccion.pagado} size="sm" className="text-primary-foreground/90" /></span>
+                  <span>{Math.round(pctCobrado)}%</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-            {/* Barra de progreso */}
-            <div className="bg-white/20 rounded-full h-2.5 mb-2">
-              <div
-                className="bg-white rounded-full h-2.5 transition-all duration-300"
-                style={{ width: `${Math.min(pctCobrado, 100)}%` }}
-              />
-            </div>
-            <div className="flex justify-between text-[12px] text-white/80">
-              <span>Cobrado: {formatMonto(proyeccion.pagado)}</span>
-              <span>{Math.round(pctCobrado)}%</span>
-            </div>
+          {/* Stat grid */}
+          <div className="grid grid-cols-2 gap-4">
+            <StatCard
+              eyebrow="Monto bruto"
+              value={<Money value={proyeccion.totalBruto} size="lg" />}
+              sub={`${delMes.length} prestaciones`}
+            />
+            <StatCard
+              eyebrow="Pendiente de cobrar"
+              value={<Money value={proyeccion.pendiente} size="lg" className="text-warning" />}
+              sub={`${delMes.filter(p => p.estado !== 'pagada').length} pendientes`}
+              accent="warning"
+            />
           </div>
 
-          {/* Cards secundarias */}
-          <div className="grid grid-cols-2 gap-3 mb-5">
-            <div className="card px-4 py-4">
-              <p className="eyebrow mb-2">Monto bruto</p>
-              <p className="text-[18px] font-bold text-[var(--ink)] m-0">
-                {formatMonto(proyeccion.totalBruto)}
+          {/* Cash received */}
+          <Card className="border-success/30 bg-success/5">
+            <CardContent className="pt-4 pb-4">
+              <p className="text-xs font-semibold text-success uppercase tracking-wide mb-1">
+                Dinero recibido en {mesLabel}
               </p>
-              <p className="text-[12px] text-[var(--ink-3)] mt-1 mb-0">
-                {delMes.length} prestaciones
+              <Money value={cobradoEnMes} size="xl" className="text-success" />
+              <p className="text-xs text-muted-foreground mt-1">
+                {pagadasDelMes.length} {pagadasDelMes.length === 1 ? 'pago' : 'pagos'} ingresados a tu cuenta
               </p>
-            </div>
-            <div className="card px-4 py-4">
-              <p className="eyebrow mb-2">Pendiente de cobrar</p>
-              <p className="text-[18px] font-bold text-[var(--amber)] m-0">
-                {formatMonto(proyeccion.pendiente)}
-              </p>
-              <p className="text-[12px] text-[var(--ink-3)] mt-1 mb-0">
-                {delMes.filter(p => p.estado !== 'pagada').length} prestaciones
-              </p>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
-          {/* Cobros recibidos en el mes */}
-          <div className="bg-[var(--surface)] rounded-[var(--radius-lg)] border border-[var(--green)] shadow-sm px-4 py-4 mb-5">
-            <p className="text-[12px] text-[var(--green)] font-semibold mb-1 mt-0">
-              Dinero recibido en {getNombreMes(mesSeleccionado).split(' ')[0]}
-            </p>
-            <p className="text-[24px] font-bold text-[var(--green)] mb-1 mt-0">
-              {formatMonto(cobradoEnMes)}
-            </p>
-            <p className="text-[12px] text-[var(--ink-3)] m-0">
-              {pagadasDelMes.length} pagos ingresados a tu cuenta
-            </p>
-          </div>
-
-          {/* Desglose por institución */}
+          {/* By institution */}
           {instEntries.length > 0 && (
-            <div className="card px-4 py-4">
-              <h2 className="text-[14px] font-semibold text-[var(--ink-2)] mb-4 mt-0">
-                Por institución
-              </h2>
-              <div className="flex flex-col gap-3">
+            <Card className="border-border/60">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-semibold">Por institución</CardTitle>
+              </CardHeader>
+              <Separator />
+              <CardContent className="pt-4 flex flex-col gap-4">
                 {instEntries.map(([nombre, datos]) => {
                   const pct = proyeccion.totalBruto > 0 ? (datos.bruto / proyeccion.totalBruto) * 100 : 0
                   return (
-                    <div key={nombre}>
-                      <div className="flex justify-between items-center mb-1">
+                    <div key={nombre} className="flex flex-col gap-1.5">
+                      <div className="flex justify-between items-start">
                         <div>
-                          <p className="text-[14px] font-medium text-[var(--ink-2)] m-0">
-                            {nombre}
-                          </p>
-                          <p className="text-[12px] text-[var(--ink-3)] mt-1 mb-0">
-                            {datos.count} prestaciones
-                          </p>
+                          <p className="text-sm font-medium text-foreground">{nombre}</p>
+                          <p className="text-xs text-muted-foreground">{datos.count} prestaciones</p>
                         </div>
                         <div className="text-right">
-                          <p className="text-[14px] font-bold text-[var(--ink)] m-0">
-                            {formatMonto(datos.neto)}
-                          </p>
-                          <p className="text-[12px] text-[var(--ink-3)] mt-1 mb-0">neto</p>
+                          <Money value={datos.neto} size="sm" />
+                          <p className="text-xs text-muted-foreground">neto</p>
                         </div>
                       </div>
-                      <div className="bg-[var(--bg)] rounded-full h-1.5">
-                        <div
-                          className="bg-[var(--ink)] rounded-full h-1.5 transition-all duration-300"
-                          style={{ width: `${pct}%` }}
-                        />
-                      </div>
+                      <Progress value={pct} className="h-1.5" />
                     </div>
                   )
                 })}
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           )}
         </>
       )}

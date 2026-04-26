@@ -29,6 +29,17 @@ export interface ReglasPlazo {
   instituciones?: { nombre: string }
 }
 
+export interface PrestacionFile {
+  id: string
+  prestacion_id: string
+  user_id: string
+  filename: string
+  file_type: string
+  file_size: number
+  storage_path: string
+  created_at: string
+}
+
 export interface Prestacion {
   id: string
   user_id: string
@@ -58,6 +69,7 @@ export interface Prestacion {
 
   created_at: string
   updated_at: string
+  files?: PrestacionFile[]
 }
 
 export interface ResumenMensual {

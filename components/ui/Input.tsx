@@ -1,42 +1,22 @@
-import { cn } from '@/lib/utils'
-import { forwardRef } from 'react'
+import * as React from "react"
 
-interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  label?: string
-  error?: string
-  hint?: string
-}
+import { cn } from "@/lib/utils"
 
-const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ label, error, hint, className, id, ...props }, ref) => {
-    const inputId = id || label?.toLowerCase().replace(/\s+/g, '-')
+const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
+  ({ className, type, ...props }, ref) => {
     return (
-      <div className="flex flex-col gap-1.5">
-        {label && (
-          <label htmlFor={inputId} className="text-sm font-medium text-slate-700">
-            {label}
-          </label>
+      <input
+        type={type}
+        className={cn(
+          "flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+          className
         )}
-        <input
-          ref={ref}
-          id={inputId}
-          className={cn(
-            'w-full px-3.5 py-2.5 rounded-xl border text-slate-900 text-sm',
-            'bg-white placeholder:text-slate-400',
-            'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
-            'transition-colors',
-            error
-              ? 'border-red-300 focus:ring-red-500'
-              : 'border-slate-200 hover:border-slate-300',
-            className
-          )}
-          {...props}
-        />
-        {error && <p className="text-xs text-red-600">{error}</p>}
-        {hint && !error && <p className="text-xs text-slate-400">{hint}</p>}
-      </div>
+        ref={ref}
+        {...props}
+      />
     )
   }
 )
-Input.displayName = 'Input'
-export default Input
+Input.displayName = "Input"
+
+export { Input }

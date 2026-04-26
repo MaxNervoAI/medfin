@@ -2,42 +2,42 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { LayoutDashboard, FileText, Building2, PieChart, LogOut, Menu, X, Search, Bell, Sliders, Sprout, Plus, Download } from 'lucide-react'
+import {
+  LayoutDashboard, FileText, Building2, PieChart,
+  LogOut, Menu, Plus, Bell, ChevronRight,
+} from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useState } from 'react'
+import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Separator } from '@/components/ui/separator'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Wordmark } from '@/components/brand/Wordmark'
 import MobileNav from './MobileNav'
 
 const navItems = [
-  { href: '/dashboard',     label: 'Dashboard',   icon: LayoutDashboard },
-  { href: '/prestaciones',  label: 'Cobranzas',   icon: FileText },
-  { href: '/instituciones', label: 'Lugares',     icon: Building2 },
-  { href: '/presupuesto',   label: 'Presupuesto', icon: PieChart },
+  { href: '/dashboard',     label: 'Dashboard',    icon: LayoutDashboard },
+  { href: '/prestaciones',  label: 'Cobranzas',    icon: FileText },
+  { href: '/instituciones', label: 'Instituciones', icon: Building2 },
+  { href: '/presupuesto',   label: 'Presupuesto',  icon: PieChart },
 ]
-
-const alianzasItems = [
-  { href: '/alianzas', label: 'Inversiones', icon: Sprout },
-]
-
-const pageTitles: Record<string, { title: string; crumb: string }> = {
-  '/dashboard':     { title: 'Dashboard', crumb: 'Medfin · Abril 2026' },
-  '/prestaciones':  { title: 'Cobranzas', crumb: 'Medfin · Lista y detalle' },
-  '/instituciones': { title: 'Lugares de trabajo', crumb: 'Medfin · Instituciones' },
-  '/presupuesto':   { title: 'Presupuesto', crumb: 'Medfin · Proyección' },
-}
 
 export default function AppShell({ children, nombre }: { children: React.ReactNode; nombre?: string }) {
   const pathname = usePathname()
   const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
-  const pageConfig = Object.entries(pageTitles).find(([key]) =>
-    pathname === key || (key !== '/dashboard' && pathname.startsWith(key))
-  )?.[1] ?? { title: 'Medfin', crumb: 'Medfin · App' }
-
   const iniciales = nombre
     ? nombre.split(' ').map((n: string) => n[0]).slice(0, 2).join('').toUpperCase()
     : 'DR'
-  const primerApellido = nombre?.split(' ')[1] ?? 'Rueda'
+  const nombreDisplay = nombre?.split(' ').slice(0, 2).join(' ') ?? 'Doctor'
 
   async function cerrarSesion() {
     const supabase = createClient()
@@ -45,165 +45,163 @@ export default function AppShell({ children, nombre }: { children: React.ReactNo
     router.push('/login')
   }
 
-  const isActive = (href: string) => pathname === href || (href !== '/dashboard' && pathname.startsWith(href))
+  const isActive = (href: string) =>
+    pathname === href || (href !== '/dashboard' && pathname.startsWith(href))
+
+  const currentNav = navItems.find(({ href }) => isActive(href))
+  const pageTitle = currentNav?.label ?? 'Medfin'
 
   return (
     <div
-      className="app grid grid-cols-1 md:grid-cols-[248px_1fr] min-h-screen"
+      className="grid grid-cols-1 md:grid-cols-[260px_1fr] min-h-screen bg-background"
       onKeyDown={(e) => {
-        if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-          e.preventDefault()
-        }
-        if (e.key === 'n' && !['INPUT', 'TEXTAREA'].includes((document.activeElement as HTMLElement)?.tagName)) {
+        if (
+          e.key === 'n' &&
+          !['INPUT', 'TEXTAREA'].includes((document.activeElement as HTMLElement)?.tagName)
+        ) {
           e.preventDefault()
           router.push('/prestaciones/nueva')
         }
       }}
     >
-      {/* Sidebar */}
-      <aside className={`sidebar border-r border-[var(--line)] bg-[var(--surface)] flex flex-col sticky top-0 h-screen ${sidebarOpen ? 'fixed left-0 top-0 w-[248px] z-40 shadow-xl md:static md:shadow-none md:w-auto' : 'hidden md:flex'}`}>
+      {/* ── Sidebar overlay (mobile) ── */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-foreground/20 z-30 md:hidden backdrop-blur-sm"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* ── Sidebar ── */}
+      <aside
+        className={cn(
+          'bg-card border-r border-border flex flex-col h-screen sticky top-0',
+          'transition-transform duration-200',
+          sidebarOpen
+            ? 'fixed left-0 top-0 w-[260px] z-40 translate-x-0 shadow-2xl md:static md:shadow-none md:translate-x-0'
+            : 'hidden md:flex'
+        )}
+      >
         {/* Brand */}
-        <div className="brand flex items-center gap-2.5 px-5.5 py-5.5 border-b border-[var(--line)]">
-          <div className="brand-mark w-7 h-7 rounded-lg bg-gradient-to-br from-[oklch(0.42_0.12_155)] to-[oklch(0.28_0.08_155)] text-white grid place-items-center font-semibold text-[13px] tracking-[-0.02em] relative">
-            M
-            <style>{`
-              .brand-mark::after {
-                content: '';
-                position: absolute;
-                inset: 6px;
-                border: 1.5px solid rgba(255,255,255,0.55);
-                border-radius: 4px;
-                border-right-color: transparent;
-                border-bottom-color: transparent;
-                transform: rotate(45deg);
-              }
-            `}</style>
-          </div>
-          <div>
-            <div className="brand-name font-semibold text-[15px] tracking-[-0.02em]">
-              Medfin<span className="brand-dot text-[var(--ink-4)] ml-1 text-[12px]">·cl</span>
-            </div>
-            <div className="text-[10.5px] text-[var(--ink-3)] tracking-[0.08em] uppercase">Cobranzas médicas</div>
-          </div>
+        <div className="px-5 py-5 border-b border-border">
+          <Wordmark />
         </div>
 
         {/* Nav */}
-        <nav className="px-3 py-3.5 flex flex-col gap-0.5 flex-1 overflow-auto">
-          <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--ink-4)] px-3 py-3.5 pb-2 font-semibold">Menú</div>
+        <nav className="flex-1 overflow-y-auto px-3 py-4 flex flex-col gap-1">
+          <p className="eyebrow px-3 pb-2">Navegación</p>
+
           {navItems.map(({ href, label, icon: Icon }) => (
             <Link
               key={href}
               href={href}
               onClick={() => setSidebarOpen(false)}
-              className={`nav-item flex items-center gap-2.5 px-3 py-3 rounded-xl text-[13.5px] font-medium transition-all duration-150 cursor-pointer min-h-[44px] ${
+              className={cn(
+                'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium',
+                'min-h-[44px] transition-colors duration-150',
                 isActive(href)
-                  ? 'bg-[var(--ink)] text-white'
-                  : 'text-[var(--ink-2)] hover:bg-[var(--accent-weak)] hover:text-[var(--ink)]'
-              }`}
+                  ? 'bg-primary text-primary-foreground shadow-sm'
+                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+              )}
             >
-              <Icon size={16} className="flex-shrink-0" />
+              <Icon className="size-4 shrink-0" />
               <span>{label}</span>
+              {isActive(href) && (
+                <ChevronRight className="size-3.5 ml-auto opacity-60" />
+              )}
             </Link>
           ))}
 
-          <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--ink-4)] px-3 py-3.5 pb-2 font-semibold mt-2">Alianzas</div>
-          {alianzasItems.map(({ href, label, icon: Icon }) => (
-            <Link
-              key={href}
-              href={href}
-              onClick={() => setSidebarOpen(false)}
-              className={`flex items-center gap-2.5 px-3 py-3 rounded-xl text-[13.5px] font-medium transition-all duration-150 min-h-[44px] ${
-                isActive(href)
-                  ? 'bg-[var(--ink)] text-white'
-                  : 'text-[var(--ink-2)]'
-              }`}
-            >
-              <Icon size={16} className="flex-shrink-0" />
-              <span>{label}</span>
-              <span className={`ml-auto text-[11px] tabular-nums px-1.5 py-0.5 rounded-full ${
-                isActive(href)
-                  ? 'text-white/85 bg-white/14'
-                  : 'text-[var(--accent-strong)] bg-[var(--accent-soft)]'
-              }`}>Nuevo</span>
-            </Link>
-          ))}
+          <Separator className="my-3" />
+          <p className="eyebrow px-3 pb-2">Acciones rápidas</p>
 
-          <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--ink-4)] px-3 py-3.5 pb-2 font-semibold mt-2">Acciones rápidas</div>
           <Link
             href="/prestaciones/nueva"
             onClick={() => setSidebarOpen(false)}
-            className="flex items-center gap-2.5 px-3 py-3 rounded-xl text-[var(--ink-2)] text-[13.5px] font-medium transition-all duration-150 hover:bg-[var(--accent-weak)] hover:text-[var(--ink)] min-h-[44px]"
+            className={cn(
+              'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium',
+              'min-h-[44px] transition-colors duration-150',
+              'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+            )}
           >
-            <Plus size={16} className="flex-shrink-0" />
+            <Plus className="size-4 shrink-0" />
             <span>Nueva prestación</span>
-            <span className="kbd ml-auto">N</span>
+            <kbd className="ml-auto text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded border border-border font-mono">N</kbd>
           </Link>
-          <button className="flex items-center gap-2.5 px-3 py-3 rounded-xl text-[var(--ink-2)] text-[13.5px] font-medium transition-all duration-150 hover:bg-[var(--accent-weak)] hover:text-[var(--ink)] min-h-[44px]">
-            <Download size={16} className="flex-shrink-0" />
-            <span>Exportar a SII</span>
-          </button>
         </nav>
 
-        {/* User card */}
-        <div className="m-3 p-3 border border-[var(--line)] rounded-xl flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-full bg-[var(--ink)] text-white grid place-items-center font-semibold text-[12px] tracking-[-0.02em]">
-            {iniciales}
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="text-[13px] font-semibold tracking-[-0.01em]">Dra. {primerApellido}</div>
-            <div className="text-[11px] text-[var(--ink-3)]">Cirujana general</div>
-          </div>
-          <button
-            onClick={cerrarSesion}
-            className="text-[var(--ink-3)] p-1 rounded-lg cursor-pointer hover:bg-[var(--bg)] transition-colors"
-            title="Cerrar sesión"
-          >
-            <LogOut size={14} />
-          </button>
+        {/* User footer */}
+        <div className="p-3 border-t border-border">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-accent transition-colors min-h-[44px] text-left group">
+                <Avatar className="size-8 shrink-0">
+                  <AvatarFallback className="bg-primary text-primary-foreground text-xs font-semibold">
+                    {iniciales}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold truncate text-foreground">{nombreDisplay}</p>
+                  <p className="text-xs text-muted-foreground">Médico independiente</p>
+                </div>
+                <ChevronRight className="size-4 text-muted-foreground group-hover:translate-x-0.5 transition-transform shrink-0" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-52">
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={cerrarSesion}
+                className="text-destructive focus:text-destructive"
+              >
+                <LogOut className="size-4" />
+                Cerrar sesión
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </aside>
 
-      {/* Main */}
+      {/* ── Main content ── */}
       <main className="flex flex-col min-w-0">
         {/* Topbar */}
-        <header className="flex items-center gap-3.5 px-8 py-4 border-b border-[var(--line)] bg-[color-mix(in_oklab,var(--bg),white_40%)] backdrop-blur saturate-[140%] sticky top-0 z-10">
-          <button
+        <header className="flex items-center gap-4 px-6 py-3.5 border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-20">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden size-9"
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="flex md:hidden"
+            aria-label="Abrir menú"
           >
-            {sidebarOpen ? <X size={22} /> : <Menu size={22} />}
-          </button>
-          <div>
-            <div className="text-[12px] text-[var(--ink-3)]">{pageConfig.crumb}</div>
-            <div className="serif text-[22px] tracking-[-0.01em]">{pageConfig.title}</div>
+            <Menu className="size-4" />
+          </Button>
+
+          <div className="flex-1 min-w-0">
+            <p className="text-xs text-muted-foreground hidden sm:block">medfin · cobranzas</p>
+            <h2 className="font-serif text-xl tracking-tight text-foreground leading-tight">{pageTitle}</h2>
           </div>
-          <div className="ml-auto flex items-center gap-2.5">
-            <div className="flex items-center gap-2 border border-[var(--line-2)] rounded-xl px-2.5 py-1.5 bg-[var(--surface)] min-w-[240px] text-[var(--ink-3)] text-[13px]">
-              <Search size={14} />
-              <input
-                type="text"
-                placeholder="Buscar prestación, institución…"
-                className="border-0 outline-0 flex-1 bg-transparent text-[var(--ink)]"
-              />
-              <span className="kbd">⌘K</span>
-            </div>
-            <button className="btn btn-ghost relative" title="Notificaciones">
-              <Bell size={14} />
-              <span className="absolute top-1.5 right-2 w-1.5 h-1.5 bg-[var(--red)] rounded-full" />
-            </button>
-            <button className="btn btn-ghost" title="Tweaks">
-              <Sliders size={14} />
-            </button>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <Button variant="ghost" size="icon" className="size-9 relative" aria-label="Notificaciones">
+              <Bell className="size-4" />
+              <span className="absolute top-1.5 right-1.5 size-1.5 bg-destructive rounded-full" />
+            </Button>
+            <Button asChild size="sm" className="hidden sm:inline-flex">
+              <Link href="/prestaciones/nueva">
+                <Plus className="size-3.5" />
+                Nueva
+              </Link>
+            </Button>
           </div>
         </header>
 
-        {/* Content */}
-        <div className="px-8 py-7 pb-16 md:pb-16 max-w-[1280px] w-full flex-1">
+        {/* Page content */}
+        <div className="flex-1 px-4 sm:px-6 lg:px-8 py-6 pb-20 md:pb-8 max-w-[1280px] w-full">
           <div className="screen">
             {children}
           </div>
         </div>
       </main>
+
       <MobileNav />
     </div>
   )

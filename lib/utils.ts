@@ -126,6 +126,7 @@ export function getNombreMes(mes: string): string {
   return format(new Date(parseInt(year), parseInt(month) - 1), "MMMM yyyy", { locale: es })
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function getTaxRate(supabase: any): Promise<number> {
   try {
     const { data, error } = await supabase

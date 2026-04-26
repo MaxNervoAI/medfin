@@ -1,7 +1,13 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import { createJsonDbClient } from '@/lib/db/json-db'
 
 export async function createClient() {
+  // Use JSON file-based DB for local development
+  if (process.env.NEXT_PUBLIC_USE_JSON_DB === 'true') {
+    return createJsonDbClient()
+  }
+
   const cookieStore = await cookies()
 
   return createServerClient(

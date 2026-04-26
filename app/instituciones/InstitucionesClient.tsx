@@ -4,8 +4,14 @@ import { useState } from 'react'
 import { Plus, Building2, ChevronDown, ChevronUp, Trash2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import type { Institucion, ReglasPlazo } from '@/types'
-import Button from '@/components/ui/Button'
-import Input from '@/components/ui/Input'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Separator } from '@/components/ui/separator'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { PageHeader } from '@/components/ui/PageHeader'
+import { EmptyState } from '@/components/ui/EmptyState'
 
 interface Props {
   instituciones: Institucion[]
@@ -138,189 +144,203 @@ export default function InstitucionesClient({ instituciones: init, reglas: initR
   const reglasDeInstitucion = (id: string) => reglas.filter(r => r.institucion_id === id)
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-[20px] font-bold text-[var(--ink)] m-0">
-            Lugares de trabajo
-          </h1>
-          <p className="text-[14px] text-[var(--ink-3)] mt-1 m-0">
-            Instituciones y plazos de cobro
-          </p>
-        </div>
-        <button onClick={() => setShowFormInstitucion(true)} className="btn btn-primary btn-sm">
-          <Plus size={16} /> Agregar
-        </button>
-      </div>
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        title="Lugares de trabajo"
+        subtitle="Instituciones y plazos de cobro"
+        actions={
+          <Button size="sm" onClick={() => setShowFormInstitucion(v => !v)}>
+            <Plus className="size-3.5" /> Agregar
+          </Button>
+        }
+      />
 
-      {/* Formulario nueva institución */}
+      {/* Form nueva institución */}
       {showFormInstitucion && (
-        <div className="bg-[var(--surface)] rounded-[var(--radius-lg)] border border-[var(--line)] px-4 py-4 mb-4 shadow-sm">
-          <h3 className="font-semibold text-[var(--ink)] mb-4 m-0">
-            Nueva institución
-          </h3>
-          <div className="flex flex-col gap-3">
-            <Input
-              label="Nombre"
-              placeholder="Clínica Las Condes, Hospital DIPRECA..."
-              value={nombreInst}
-              onChange={e => setNombreInst(e.target.value)}
-            />
-            <Input
-              label="RUT (opcional)"
-              placeholder="76.XXX.XXX-X"
-              value={rutInst}
-              onChange={e => setRutInst(e.target.value)}
-            />
+        <Card className="border-primary/30 bg-primary/5">
+          <CardHeader className="pb-3">
+            <p className="text-sm font-semibold text-foreground">Nueva institución</p>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-3">
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="nombre-inst">Nombre</Label>
+              <Input
+                id="nombre-inst"
+                placeholder="Clínica Las Condes, Hospital DIPRECA…"
+                value={nombreInst}
+                onChange={e => setNombreInst(e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="rut-inst">RUT <span className="text-muted-foreground font-normal">(opcional)</span></Label>
+              <Input
+                id="rut-inst"
+                placeholder="76.XXX.XXX-X"
+                value={rutInst}
+                onChange={e => setRutInst(e.target.value)}
+              />
+            </div>
             {error && (
-              <div className="bg-[var(--red-weak)] text-[var(--red)] text-[14px] rounded-lg px-3 py-2">
-                {error}
-              </div>
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
             )}
-            <div className="flex gap-2 mt-2">
-              <Button onClick={crearInstitucion} loading={loading} className="flex-1">
-                Guardar
+            <div className="flex gap-2">
+              <Button onClick={crearInstitucion} disabled={loading} className="flex-1">
+                {loading ? 'Guardando…' : 'Guardar'}
               </Button>
-              <Button variant="secondary" onClick={() => setShowFormInstitucion(false)} className="flex-1">
+              <Button variant="outline" onClick={() => setShowFormInstitucion(false)} className="flex-1">
                 Cancelar
               </Button>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       )}
 
-      {/* Lista de instituciones */}
+      {/* Lista */}
       {instituciones.length === 0 ? (
-        <div className="text-center py-16 text-[var(--ink-3)]">
-          <Building2 size={40} className="mx-auto mb-3 opacity-30" />
-          <p className="font-medium mt-2 mb-0">Sin instituciones</p>
-          <p className="text-[14px] m-0">Agrega tus clínicas u hospitales</p>
-        </div>
+        <EmptyState
+          icon={<Building2 />}
+          title="Sin instituciones"
+          description="Agrega tus clínicas u hospitales"
+          action={
+            <Button size="sm" onClick={() => setShowFormInstitucion(true)}>
+              <Plus className="size-3.5" /> Agregar institución
+            </Button>
+          }
+        />
       ) : (
         <div className="flex flex-col gap-3">
           {instituciones.map(inst => {
             const expanded = expandedId === inst.id
             const reglasInst = reglasDeInstitucion(inst.id)
             return (
-              <div
-                key={inst.id}
-                className="bg-[var(--surface)] rounded-[var(--radius-lg)] border border-[var(--line)] shadow-sm overflow-hidden"
-              >
-                <div
-                  className="flex items-center justify-between px-4 py-4 cursor-pointer"
+              <Card key={inst.id} className="border-border/60 overflow-hidden">
+                {/* Header row */}
+                <button
+                  type="button"
+                  className="w-full flex items-center justify-between px-4 py-4 text-left hover:bg-muted/30 transition-colors"
                   onClick={() => setExpandedId(expanded ? null : inst.id)}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 bg-[var(--accent-weak)] rounded-xl flex items-center justify-center">
-                      <Building2 size={18} className="text-[var(--accent-strong)]" />
+                    <div className="size-9 bg-primary/10 rounded-lg flex items-center justify-center shrink-0">
+                      <Building2 className="size-4 text-primary" />
                     </div>
-                    <div>
-                      <p className="font-semibold text-[var(--ink)] m-0">{inst.nombre}</p>
-                      {inst.rut && <p className="text-[12px] text-[var(--ink-3)] mt-1 mb-0">RUT {inst.rut}</p>}
-                      <p className="text-[12px] text-[var(--ink-3)] m-0">
+                    <div className="text-left">
+                      <p className="font-semibold text-sm text-foreground">{inst.nombre}</p>
+                      {inst.rut && <p className="text-xs text-muted-foreground">RUT {inst.rut}</p>}
+                      <p className="text-xs text-muted-foreground">
                         {reglasInst.length} {reglasInst.length === 1 ? 'regla' : 'reglas'} de plazo
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5">
                     <button
-                      onClick={(e) => { e.stopPropagation(); eliminarInstitucion(inst.id) }}
-                      className="p-1.5 text-[var(--ink-4)] rounded-lg cursor-pointer transition-all duration-150 hover:text-[var(--red)] hover:bg-[var(--red-weak)]"
+                      type="button"
+                      onClick={e => { e.stopPropagation(); eliminarInstitucion(inst.id) }}
+                      className="p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                      aria-label="Eliminar institución"
                     >
-                      <Trash2 size={15} />
+                      <Trash2 className="size-3.5" />
                     </button>
-                    {expanded ? (
-                      <ChevronUp size={16} className="text-[var(--ink-3)]" />
-                    ) : (
-                      <ChevronDown size={16} className="text-[var(--ink-3)]" />
-                    )}
+                    {expanded
+                      ? <ChevronUp className="size-4 text-muted-foreground" />
+                      : <ChevronDown className="size-4 text-muted-foreground" />
+                    }
                   </div>
-                </div>
+                </button>
 
-                {/* Reglas de plazo */}
+                {/* Reglas expandidas */}
                 {expanded && (
-                  <div className="border-t border-[var(--line)] px-4 pb-4">
-                    <div className="flex items-center justify-between py-3">
-                      <p className="text-[14px] font-semibold text-[var(--ink-2)] m-0">
-                        Reglas de plazo
-                      </p>
-                      <button
-                        onClick={() => setShowFormRegla(showFormRegla === inst.id ? null : inst.id)}
-                        className="text-[12px] text-[var(--accent)] font-medium flex items-center gap-1 cursor-pointer px-2 py-1"
-                      >
-                        <Plus size={13} /> Agregar regla
-                      </button>
-                    </div>
-
-                    {showFormRegla === inst.id && (
-                      <div className="bg-[var(--bg)] rounded-xl p-3 mb-3 flex flex-col gap-3">
-                        <Input
-                          label="Tipo de prestación"
-                          placeholder="Cirugía, Endoscopia, Turno..."
-                          value={tipoPrestacion}
-                          onChange={e => setTipoPrestacion(e.target.value)}
-                        />
-                        <div className="grid grid-cols-2 gap-2">
-                          <Input
-                            label="Días para emitir boleta"
-                            type="number"
-                            min="0"
-                            value={diasBoleta}
-                            onChange={e => setDiasBoleta(e.target.value)}
-                            hint="Desde la prestación"
-                          />
-                          <Input
-                            label="Días para cobrar"
-                            type="number"
-                            min="0"
-                            value={diasPago}
-                            onChange={e => setDiasPago(e.target.value)}
-                            hint="Desde la boleta"
-                          />
-                        </div>
-                        <div className="flex gap-2">
-                          <Button size="sm" onClick={() => crearRegla(inst.id)} loading={loading} className="flex-1">
-                            Guardar
-                          </Button>
-                          <Button size="sm" variant="secondary" onClick={() => setShowFormRegla(null)} className="flex-1">
-                            Cancelar
-                          </Button>
-                        </div>
+                  <>
+                    <Separator />
+                    <div className="px-4 pb-4">
+                      <div className="flex items-center justify-between py-3">
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Reglas de plazo</p>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 text-xs gap-1"
+                          onClick={() => setShowFormRegla(showFormRegla === inst.id ? null : inst.id)}
+                        >
+                          <Plus className="size-3" /> Agregar regla
+                        </Button>
                       </div>
-                    )}
 
-                    {reglasInst.length === 0 ? (
-                      <p className="text-[14px] text-[var(--ink-3)] py-2 m-0">
-                        Sin reglas configuradas
-                      </p>
-                    ) : (
-                      <div className="flex flex-col gap-2">
-                        {reglasInst.map(regla => (
-                          <div
-                            key={regla.id}
-                            className="flex items-center justify-between bg-[var(--bg)] rounded-xl px-3 py-2.5"
-                          >
-                            <div>
-                              <p className="text-[14px] font-medium text-[var(--ink-2)] m-0">
-                                {regla.tipo_prestacion_nombre}
-                              </p>
-                              <p className="text-[12px] text-[var(--ink-3)] mt-1 mb-0">
-                                Boleta en {regla.dias_emitir_boleta}d · Cobro en {regla.dias_recibir_pago}d
-                              </p>
-                            </div>
-                            <button
-                              onClick={() => eliminarRegla(regla.id)}
-                              className="p-1.5 text-[var(--ink-4)] rounded-lg cursor-pointer transition-all duration-150 hover:text-[var(--red)] hover:bg-[var(--red-weak)]"
-                            >
-                              <Trash2 size={13} />
-                            </button>
+                      {showFormRegla === inst.id && (
+                        <div className="bg-muted/40 rounded-lg p-3 mb-3 flex flex-col gap-3">
+                          <div className="flex flex-col gap-1.5">
+                            <Label htmlFor={`tipo-${inst.id}`}>Tipo de prestación</Label>
+                            <Input
+                              id={`tipo-${inst.id}`}
+                              placeholder="Cirugía, Endoscopia, Turno…"
+                              value={tipoPrestacion}
+                              onChange={e => setTipoPrestacion(e.target.value)}
+                            />
                           </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div className="flex flex-col gap-1.5">
+                              <Label htmlFor={`dias-boleta-${inst.id}`}>Días boleta</Label>
+                              <Input
+                                id={`dias-boleta-${inst.id}`}
+                                type="number"
+                                min="0"
+                                value={diasBoleta}
+                                onChange={e => setDiasBoleta(e.target.value)}
+                              />
+                              <p className="text-xs text-muted-foreground">Desde la prestación</p>
+                            </div>
+                            <div className="flex flex-col gap-1.5">
+                              <Label htmlFor={`dias-pago-${inst.id}`}>Días cobro</Label>
+                              <Input
+                                id={`dias-pago-${inst.id}`}
+                                type="number"
+                                min="0"
+                                value={diasPago}
+                                onChange={e => setDiasPago(e.target.value)}
+                              />
+                              <p className="text-xs text-muted-foreground">Desde la boleta</p>
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button size="sm" onClick={() => crearRegla(inst.id)} disabled={loading} className="flex-1">
+                              {loading ? 'Guardando…' : 'Guardar'}
+                            </Button>
+                            <Button size="sm" variant="outline" onClick={() => setShowFormRegla(null)} className="flex-1">
+                              Cancelar
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+
+                      {reglasInst.length === 0 ? (
+                        <p className="text-sm text-muted-foreground py-2">Sin reglas configuradas</p>
+                      ) : (
+                        <div className="flex flex-col gap-2">
+                          {reglasInst.map(regla => (
+                            <div key={regla.id} className="flex items-center justify-between bg-muted/30 rounded-md px-3 py-2.5">
+                              <div>
+                                <p className="text-sm font-medium text-foreground">{regla.tipo_prestacion_nombre}</p>
+                                <p className="text-xs text-muted-foreground mt-0.5">
+                                  Boleta en {regla.dias_emitir_boleta}d · Cobro en {regla.dias_recibir_pago}d
+                                </p>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => eliminarRegla(regla.id)}
+                                className="p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                                aria-label="Eliminar regla"
+                              >
+                                <Trash2 className="size-3.5" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </>
                 )}
-              </div>
+              </Card>
             )
           })}
         </div>

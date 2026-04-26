@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import ErrorBoundary from '@/components/ui/ErrorBoundary'
+import { Toaster } from '@/components/ui/sonner'
 
 export const metadata: Metadata = {
   title: 'Medfin — Finanzas para profesionales de salud',
@@ -20,7 +21,7 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
-  themeColor: '#2563eb',
+  themeColor: '#0E7C66',
 }
 
 export default function RootLayout({
@@ -29,16 +30,20 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="es">
+    <html lang="es" className="font-sans">
       <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="Medfin" />
-        <meta name="msapplication-TileColor" content="#2563eb" />
+        <meta name="msapplication-TileColor" content="#0E7C66" />
       </head>
       <body className="antialiased">
         <ErrorBoundary>
           {children}
+          <Toaster richColors position="top-right" />
         </ErrorBoundary>
       </body>
     </html>

@@ -39,3 +39,6 @@ next-env.d.ts
 /supabase/.branches
 /supabase/.temp
 /supabase/.env
+
+# JSON file-based database (local dev)
+/.data

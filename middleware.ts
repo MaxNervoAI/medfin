@@ -43,8 +43,10 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   const url = request.nextUrl.clone()
 
-  // Debug mode: allow bypassing auth in development
-  const isDebug = url.searchParams.get('debug') === 'true' && process.env.NODE_ENV === 'development'
+  // Debug mode: allow bypassing auth in development (via query param or env var)
+  const isDebugQuery = url.searchParams.get('debug') === 'true' && process.env.NODE_ENV === 'development'
+  const isJsonDbMode = process.env.NEXT_PUBLIC_USE_JSON_DB === 'true' && process.env.NODE_ENV === 'development'
+  const isDebug = isDebugQuery || isJsonDbMode
 
   // Rutas públicas
   const publicPaths = ['/login', '/auth/callback']

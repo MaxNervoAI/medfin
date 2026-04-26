@@ -52,23 +52,44 @@
 ---
 
 ## Epic 3: Mobile-First Refactor (CRITICAL BLOCKER)
-**Status:** 5 files use inline styles. Zero responsive Tailwind prefixes exist.
+**Status:** ✅ COMPLETED (2026-04-25)
+**Notes:** All inline styles purged from target components. Tailwind responsiveness added to AppShell and Dashboard. MobileNav component created and integrated. Touch targets optimized to minimum 44px across all interactive elements.
 
-- [ ] **E3.1** Purge inline styles from:
+- [x] **E3.1** Purge inline styles from:
   - `app/dashboard/DashboardClient.tsx`
   - `app/prestaciones/PrestacionesClient.tsx`
   - `app/instituciones/InstitucionesClient.tsx`
   - `app/presupuesto/PresupuestoClient.tsx`
   - `components/layout/AppShell.tsx`
-- [ ] **E3.2** Implement Tailwind responsiveness:
-  - AppShell: `grid-cols-1 md:grid-cols-[240px_1fr]`
+- [x] **E3.2** Implement Tailwind responsiveness:
+  - AppShell: `grid-cols-1 md:grid-cols-[248px_1fr]`
   - Dashboard stats: `grid-cols-1 sm:grid-cols-2 lg:grid-cols-4`
   - Replace all fixed pixel widths
-- [ ] **E3.3** Build Mobile Navigation:
+- [x] **E3.3** Build Mobile Navigation:
   - Create `components/layout/MobileNav.tsx`
   - Fixed bottom bar on mobile (`md:hidden`), hide on desktop
   - Tabs: Dashboard, Prestaciones, Nueva, Instituciones, Presupuesto
-- [ ] **E3.4** Optimize touch targets: min 44px height/width on all interactive elements
+- [x] **E3.4** Optimize touch targets: min 44px height/width on all interactive elements
+
+---
+
+## Epic 8: Design System Audit & shadcn Migration
+**Status:** ✅ COMPLETED (2026-04-26)
+**Notes:** Upgraded to Tailwind CSS v4 with CSS-first `@theme` configuration in `globals.css`. Reinstalled shadcn/ui with "new-york" style and stone base. Implemented full "Premium Medical-Finance" design system with OKLCH color tokens, Instrument Serif / Inter / JetBrains Mono fonts. All six main pages + AppShell + MobileNav refactored. Legacy uppercase UI components (`Button.tsx`, `Badge.tsx`, `Input.tsx`, `Select.tsx`) replaced by proper shadcn lowercase versions. Zero inline styles. Sonner toasts integrated. Build passes.
+
+- [x] **E8.1** Design Audit: inventory and map custom components to shadcn equivalents
+- [x] **E8.2** Tailwind v4 upgrade: `@tailwindcss/postcss` plugin, CSS-first `@theme` block, OKLCH palette
+- [x] **E8.3** shadcn reinit: new-york style, stone base, all required components installed
+- [x] **E8.4** Custom wrappers: `Money`, `StatCard`, `EmptyState`, `PageHeader`, `Wordmark`
+- [x] **E8.5** AppShell + MobileNav rebrand with shadcn Button/Avatar/DropdownMenu
+- [x] **E8.6** Login page rebrand
+- [x] **E8.7** Dashboard rebrand: StatCard grid, Money values, bar chart, alerts
+- [x] **E8.8** Prestaciones list rebrand: Tabs/Sheet/Badge, sonner toasts
+- [x] **E8.9** PrestacionDetalle rebrand: SheetHeader, AlertDialog, Money, InfoRow
+- [x] **E8.10** NuevaPrestacionForm rebrand: shadcn Card/Select/Input/Label/Alert/Textarea
+- [x] **E8.11** InstitucionesClient rebrand: PageHeader, Card accordion, EmptyState
+- [x] **E8.12** PresupuestoClient rebrand: hero Card, Progress bar, StatCard grid, EmptyState
+- [x] **E8.13** Legacy CSS purged; `globals.css` uses only design tokens + minimal utilities
 
 ---
 
