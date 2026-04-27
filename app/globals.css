@@ -85,7 +85,7 @@
     --radius: 0.75rem;
 
     /* Fonts */
-    --font-family-sans: 'Inter', -apple-system, system-ui, sans-serif;
+    --font-family-sans: 'Plus Jakarta Sans', -apple-system, system-ui, sans-serif;
     --font-family-serif: 'Instrument Serif', 'Times New Roman', serif;
     --font-family-mono: 'JetBrains Mono', ui-monospace, monospace;
   }

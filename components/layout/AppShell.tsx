@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {
   LayoutDashboard, FileText, Building2, PieChart,
-  LogOut, Menu, Plus, Bell, ChevronRight,
+  LogOut, Menu, Plus, ChevronRight,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useState } from 'react'
@@ -24,9 +24,9 @@ import MobileNav from './MobileNav'
 
 const navItems = [
   { href: '/dashboard',     label: 'Dashboard',    icon: LayoutDashboard },
-  { href: '/prestaciones',  label: 'Cobranzas',    icon: FileText },
+  { href: '/prestaciones',  label: 'Prestaciones', icon: FileText },
   { href: '/instituciones', label: 'Instituciones', icon: Building2 },
-  { href: '/presupuesto',   label: 'Presupuesto',  icon: PieChart },
+  { href: '/presupuesto',   label: 'Dashboard 2',  icon: PieChart },
 ]
 
 export default function AppShell({ children, nombre }: { children: React.ReactNode; nombre?: string }) {
@@ -60,7 +60,7 @@ export default function AppShell({ children, nombre }: { children: React.ReactNo
           !['INPUT', 'TEXTAREA'].includes((document.activeElement as HTMLElement)?.tagName)
         ) {
           e.preventDefault()
-          router.push('/prestaciones/nueva')
+          router.push('/prestaciones')
         }
       }}
     >
@@ -111,23 +111,6 @@ export default function AppShell({ children, nombre }: { children: React.ReactNo
               )}
             </Link>
           ))}
-
-          <Separator className="my-3" />
-          <p className="eyebrow px-3 pb-2">Acciones rápidas</p>
-
-          <Link
-            href="/prestaciones/nueva"
-            onClick={() => setSidebarOpen(false)}
-            className={cn(
-              'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium',
-              'min-h-[44px] transition-colors duration-150',
-              'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-            )}
-          >
-            <Plus className="size-4 shrink-0" />
-            <span>Nueva prestación</span>
-            <kbd className="ml-auto text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded border border-border font-mono">N</kbd>
-          </Link>
         </nav>
 
         {/* User footer */}
@@ -177,21 +160,9 @@ export default function AppShell({ children, nombre }: { children: React.ReactNo
 
           <div className="flex-1 min-w-0">
             <p className="text-xs text-muted-foreground hidden sm:block">medfin · cobranzas</p>
-            <h2 className="font-serif text-xl tracking-tight text-foreground leading-tight">{pageTitle}</h2>
+            <h2 className="text-xl tracking-tight text-foreground leading-tight">{pageTitle}</h2>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
-            <Button variant="ghost" size="icon" className="size-9 relative" aria-label="Notificaciones">
-              <Bell className="size-4" />
-              <span className="absolute top-1.5 right-1.5 size-1.5 bg-destructive rounded-full" />
-            </Button>
-            <Button asChild size="sm" className="hidden sm:inline-flex">
-              <Link href="/prestaciones/nueva">
-                <Plus className="size-3.5" />
-                Nueva
-              </Link>
-            </Button>
-          </div>
         </header>
 
         {/* Page content */}

@@ -56,7 +56,7 @@ export default function PresupuestoClient({ prestaciones }: Props) {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title="Presupuesto"
+        title="Dashboard 2"
         subtitle="Proyección de ingresos por mes"
         actions={
           <div className="flex items-center gap-1">

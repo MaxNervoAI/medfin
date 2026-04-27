@@ -47,6 +47,11 @@ export function generarAlertas(prestaciones: Prestacion[]): Alerta[] {
   const alertas: Alerta[] = []
 
   for (const p of prestaciones) {
+    // Skip if alert is snoozed
+    if (p.alerta_snoozed_until && parseISO(p.alerta_snoozed_until) > hoy) {
+      continue
+    }
+
     if (p.estado === 'realizada' && p.fecha_limite_boleta) {
       const dias = differenceInDays(parseISO(p.fecha_limite_boleta), hoy)
       if (dias < 0) {

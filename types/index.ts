@@ -14,6 +14,9 @@ export interface Institucion {
   user_id: string
   nombre: string
   rut: string | null
+  email: string | null
+  phone: string | null
+  contacto_nombre: string | null
   activa: boolean
   created_at: string
 }
@@ -69,6 +72,7 @@ export interface Prestacion {
 
   created_at: string
   updated_at: string
+  alerta_snoozed_until: string | null
   files?: PrestacionFile[]
 }
 

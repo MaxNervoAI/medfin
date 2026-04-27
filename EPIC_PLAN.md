@@ -140,6 +140,20 @@
 
 ---
 
+## Epic 9: Dashboard Alert Actions
+**Status:** ✅ COMPLETED (2026-04-27)
+**Notes:** Added quick-action functionality to dashboard alerts. Users can click alerts to open modal, emit boleta, mark paid, or snooze. Migration 003_alert_snooze.sql created. AlertActionModal component integrated with toast feedback and optimistic UI updates.
+
+- [x] **E9.1** Create AlertActionModal component with Dialog
+- [x] **E9.2** Define alert action logic (emit boleta, mark paid, snooze)
+- [x] **E9.3** Implement snooze functionality with migration + generarAlertas update
+- [x] **E9.4** Integrate AlertActionModal into DashboardClient
+- [x] **E9.5** Add toast notifications and optimistic UI updates
+- [x] **E9.6** Mobile optimization for modal
+- [x] **E9.7** Database migration 003_alert_snooze.sql
+
+---
+
 ## Execution Order
 
 **Phase 1 (Weeks 1–3): Foundation**

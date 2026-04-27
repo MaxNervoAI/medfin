@@ -17,7 +17,7 @@ export function EmptyState({ icon, title, description, action, className }: Empt
           {icon}
         </div>
       )}
-      <p className="font-serif text-xl text-foreground/80 italic mb-1">{title}</p>
+      <p className="text-xl text-foreground/80 italic mb-1">{title}</p>
       {description && (
         <p className="text-sm text-muted-foreground mt-1 max-w-sm">{description}</p>
       )}

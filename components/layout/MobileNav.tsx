@@ -7,9 +7,9 @@ import { cn } from '@/lib/utils'
 
 const navItems = [
   { href: '/dashboard',     label: 'Dashboard',    icon: LayoutDashboard },
-  { href: '/prestaciones',  label: 'Cobranzas',    icon: FileText },
+  { href: '/prestaciones',  label: 'Prestaciones', icon: FileText },
   { href: '/instituciones', label: 'Lugares',      icon: Building2 },
-  { href: '/presupuesto',   label: 'Presupuesto',  icon: PieChart },
+  { href: '/presupuesto',   label: 'Dashboard 2',  icon: PieChart },
 ]
 
 export default function MobileNav() {

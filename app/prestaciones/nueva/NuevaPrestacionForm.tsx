@@ -303,7 +303,7 @@ export default function NuevaPrestacionForm({ instituciones, reglas }: Props) {
           <ArrowLeft className="size-4" />
         </Button>
         <div>
-          <h1 className="font-serif text-2xl tracking-tight text-foreground leading-tight">Registrar prestación</h1>
+          <h1 className="text-2xl tracking-tight text-foreground leading-tight">Registrar prestación</h1>
           <p className="text-sm text-muted-foreground">Procedimiento, cirugía o turno</p>
         </div>
       </div>

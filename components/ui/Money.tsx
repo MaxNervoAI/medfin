@@ -28,7 +28,7 @@ export function Money({ value, className, size = 'md', showSign = false, muted =
   return (
     <span
       className={cn(
-        'font-mono tabular-nums tracking-tight font-semibold',
+        'tabular-nums tracking-tight font-semibold',
         sizes,
         colorClass,
         className

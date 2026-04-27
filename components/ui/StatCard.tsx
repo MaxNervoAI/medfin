@@ -24,7 +24,7 @@ export function StatCard({ eyebrow, value, sub, accent = 'default', className }:
     <Card className={cn('border-border/60 shadow-none', className)}>
       <CardContent className="p-5">
         <p className="eyebrow mb-3">{eyebrow}</p>
-        <div className={cn('font-serif text-[2.6rem] leading-none tracking-tight', valueColor)}>
+        <div className={cn('text-[2.6rem] leading-none tracking-tight', valueColor)}>
           {value}
         </div>
         {sub && (

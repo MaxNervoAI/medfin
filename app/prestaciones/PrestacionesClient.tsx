@@ -243,12 +243,20 @@ export default function PrestacionesClient({ prestaciones: init, instituciones, 
     toast.success('Prestación eliminada')
   }
 
+  async function editarPrestacion(prestacion: Prestacion, data: Partial<Prestacion>) {
+    const { error } = await supabase.from('prestaciones').update(data).eq('id', prestacion.id)
+    if (error) { toast.error('Error al editar'); throw error }
+    setPrestaciones(prev => prev.map(p => p.id === prestacion.id ? { ...p, ...data } : p))
+    toast.success('Prestación actualizada')
+    router.refresh()
+  }
+
   const stepIdx = STEPS.indexOf(form.step)
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title="Cobranzas"
+        title="Prestaciones"
         subtitle={`${prestaciones.length} prestaciones registradas`}
         actions={
           <Button size="sm" onClick={openNueva}>
@@ -341,7 +349,7 @@ export default function PrestacionesClient({ prestaciones: init, instituciones, 
       <Dialog open={showNueva} onOpenChange={open => !open && closeNueva()}>
         <DialogContent className="max-w-sm w-full p-0 gap-0 overflow-hidden">
           <DialogHeader className="px-6 pt-6 pb-4">
-            <DialogTitle className="font-serif text-xl tracking-tight">Nueva prestación</DialogTitle>
+            <DialogTitle className="text-xl tracking-tight">Nueva prestación</DialogTitle>
             {/* Step pills */}
             <div className="flex gap-1.5 mt-3">
               {STEPS.map((s, i) => (
@@ -621,6 +629,7 @@ export default function PrestacionesClient({ prestaciones: init, instituciones, 
               onBoletaEmitida={marcarBoletaEmitida}
               onPagada={marcarPagada}
               onEliminar={eliminarPrestacion}
+              onEditar={editarPrestacion}
             />
           )}
         </SheetContent>

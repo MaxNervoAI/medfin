@@ -1,0 +1,102 @@
+[
+  {
+    "id": "regla-1",
+    "user_id": "local-user-id",
+    "institucion_id": "inst-1",
+    "tipo_prestacion_nombre": "Cirugía Laparoscópica",
+    "dias_emitir_boleta": 30,
+    "dias_recibir_pago": 30,
+    "created_at": "2026-01-15T10:00:00Z",
+    "updated_at": "2026-01-15T10:00:00Z"
+  },
+  {
+    "id": "regla-2",
+    "user_id": "local-user-id",
+    "institucion_id": "inst-1",
+    "tipo_prestacion_nombre": "Cirugía Artroscópica",
+    "dias_emitir_boleta": 30,
+    "dias_recibir_pago": 30,
+    "created_at": "2026-01-15T10:00:00Z",
+    "updated_at": "2026-01-15T10:00:00Z"
+  },
+  {
+    "id": "regla-3",
+    "user_id": "local-user-id",
+    "institucion_id": "inst-1",
+    "tipo_prestacion_nombre": "Consulta Traumatología",
+    "dias_emitir_boleta": 30,
+    "dias_recibir_pago": 30,
+    "created_at": "2026-01-15T10:00:00Z",
+    "updated_at": "2026-01-15T10:00:00Z"
+  },
+  {
+    "id": "regla-4",
+    "user_id": "local-user-id",
+    "institucion_id": "inst-2",
+    "tipo_prestacion_nombre": "Endoscopía Digestiva",
+    "dias_emitir_boleta": 30,
+    "dias_recibir_pago": 30,
+    "created_at": "2026-01-20T10:00:00Z",
+    "updated_at": "2026-01-20T10:00:00Z"
+  },
+  {
+    "id": "regla-5",
+    "user_id": "local-user-id",
+    "institucion_id": "inst-2",
+    "tipo_prestacion_nombre": "Cirugía General",
+    "dias_emitir_boleta": 30,
+    "dias_recibir_pago": 30,
+    "created_at": "2026-01-20T10:00:00Z",
+    "updated_at": "2026-01-20T10:00:00Z"
+  },
+  {
+    "id": "regla-6",
+    "user_id": "local-user-id",
+    "institucion_id": "inst-2",
+    "tipo_prestacion_nombre": "Turno Urgencia",
+    "dias_emitir_boleta": 30,
+    "dias_recibir_pago": 30,
+    "created_at": "2026-01-20T10:00:00Z",
+    "updated_at": "2026-01-20T10:00:00Z"
+  },
+  {
+    "id": "regla-7",
+    "user_id": "local-user-id",
+    "institucion_id": "inst-3",
+    "tipo_prestacion_nombre": "Consulta Cardiología",
+    "dias_emitir_boleta": 30,
+    "dias_recibir_pago": 30,
+    "created_at": "2026-02-01T10:00:00Z",
+    "updated_at": "2026-02-01T10:00:00Z"
+  },
+  {
+    "id": "regla-8",
+    "user_id": "local-user-id",
+    "institucion_id": "inst-3",
+    "tipo_prestacion_nombre": "Ecografía Abdominal",
+    "dias_emitir_boleta": 30,
+    "dias_recibir_pago": 30,
+    "created_at": "2026-02-01T10:00:00Z",
+    "updated_at": "2026-02-01T10:00:00Z"
+  },
+  {
+    "id": "regla-9",
+    "user_id": "local-user-id",
+    "institucion_id": "inst-4",
+    "tipo_prestacion_nombre": "Turno Urgencia",
+    "dias_emitir_boleta": 30,
+    "dias_recibir_pago": 30,
+    "created_at": "2026-02-10T10:00:00Z",
+    "updated_at": "2026-02-10T10:00:00Z"
+  },
+  {
+    "id": "regla-10",
+    "user_id": "local-user-id",
+    "institucion_id": "inst-4",
+    "tipo_prestacion_nombre": "Cirugía Vascular",
+    "dias_emitir_boleta": 30,
+    "dias_recibir_pago": 30,
+    "created_at": "2026-02-10T10:00:00Z",
+    "updated_at": "2026-02-10T10:00:00Z"
+  }
+]
