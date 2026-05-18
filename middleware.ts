@@ -48,8 +48,8 @@ export async function middleware(request: NextRequest) {
   const isJsonDbMode = process.env.NEXT_PUBLIC_USE_JSON_DB === 'true' && process.env.NODE_ENV === 'development'
   const isDebug = isDebugQuery || isJsonDbMode
 
-  // Rutas públicas
-  const publicPaths = ['/login', '/auth/callback']
+  // Rutas públicas (incluyendo dashboard sin autenticación y landing page)
+  const publicPaths = ['/', '/login', '/auth/callback', '/dashboard', '/instituciones', '/prestaciones', '/presupuesto', '/calendario', '/perfil']
   if (publicPaths.some(p => pathname.startsWith(p))) {
     return supabaseResponse
   }

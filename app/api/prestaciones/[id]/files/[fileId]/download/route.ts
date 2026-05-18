@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import fs from 'fs/promises'
+import { createClient as createStorageClient } from '@supabase/supabase-js'
 
 export async function GET(
   req: NextRequest,
@@ -13,6 +13,10 @@ export async function GET(
     }
 
     const supabase = await createClient()
+    const storageClient = createStorageClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
     const { data: { user } } = await supabase.auth.getUser()
     
     if (!user) {
@@ -32,15 +36,26 @@ export async function GET(
       return NextResponse.json({ error: 'Archivo no encontrado' }, { status: 404 })
     }
 
-    // Read file from disk
-    const fileBuffer = await fs.readFile(fileData.storage_path)
+    // Download file from Supabase Storage
+    const { data: fileDataBlob, error: downloadError } = await storageClient.storage
+      .from('prestaciones-files')
+      .download(fileData.storage_path)
+
+    if (downloadError || !fileDataBlob) {
+      console.error('Supabase Storage download error:', downloadError)
+      return NextResponse.json({ error: 'Error al descargar archivo' }, { status: 500 })
+    }
+
+    // Convert blob to buffer
+    const arrayBuffer = await fileDataBlob.arrayBuffer()
+    const buffer = Buffer.from(arrayBuffer)
 
     // Return file with proper headers
-    return new NextResponse(fileBuffer, {
+    return new NextResponse(buffer, {
       headers: {
         'Content-Type': fileData.file_type,
         'Content-Disposition': `attachment; filename="${fileData.filename}"`,
-        'Content-Length': fileBuffer.length.toString(),
+        'Content-Length': buffer.length.toString(),
       },
     })
   } catch (error) {

@@ -35,6 +35,7 @@ export default function PrestacionDetalle({ prestacion: p, onBoletaEmitida, onPa
   const [fechaAccion, setFechaAccion] = useState(new Date().toISOString().split('T')[0])
   const [files, setFiles] = useState(p.files || [])
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [uploading, setUploading] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [editData, setEditData] = useState({
     tipo_prestacion: p.tipo_prestacion,
@@ -78,6 +79,40 @@ export default function PrestacionDetalle({ prestacion: p, onBoletaEmitida, onPa
     })
     setIsEditing(false)
     setLoading(false)
+  }
+
+  async function handleUpload() {
+    if (!selectedFile) return
+    
+    setUploading(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', selectedFile)
+
+      const response = await fetch(`/api/prestaciones/${p.id}/files/upload`, {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Error al subir archivo')
+      }
+
+      const result = await response.json()
+      
+      // Add the new file to the files list
+      if (result.file) {
+        setFiles([...files, result.file])
+      }
+      
+      setSelectedFile(null)
+    } catch (error) {
+      console.error('Upload error:', error)
+      alert(error instanceof Error ? error.message : 'Error al subir archivo')
+    } finally {
+      setUploading(false)
+    }
   }
 
   function InfoRow({ label, value, accent }: { label: string; value: React.ReactNode; accent?: string }) {
@@ -274,16 +309,12 @@ export default function PrestacionDetalle({ prestacion: p, onBoletaEmitida, onPa
                   <Button
                     type="button"
                     variant="secondary"
-                    onClick={() => {
-                      console.log('Upload file:', selectedFile.name)
-                      // TODO: Implement actual file upload
-                      setSelectedFile(null)
-                    }}
-                    disabled={loading}
+                    onClick={handleUpload}
+                    disabled={uploading}
                     className="w-full gap-2"
                   >
                     <Upload className="size-4" />
-                    Subir archivo
+                    {uploading ? 'Subiendo...' : 'Subir archivo'}
                   </Button>
                 )}
               </div>

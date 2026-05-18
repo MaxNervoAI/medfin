@@ -1,6 +1,6 @@
 {
-  "name": "Medfin — Finanzas para Profesionales de Salud",
-  "short_name": "Medfin",
+  "name": "Dr Wallet — Finanzas para Profesionales de Salud",
+  "short_name": "Dr Wallet",
   "description": "Controla tus cobranzas, boletas y presupuesto mensual como médico independiente.",
   "start_url": "/dashboard",
   "display": "standalone",

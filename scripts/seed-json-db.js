@@ -49,7 +49,7 @@ const mockProfiles = [
   {
     id: MOCK_USER_ID,
     nombre: 'Dr. Juan Pérez',
-    email: 'local@medfin.dev',
+    email: 'local@drwallet.dev',
     especialidad: 'Medicina General',
     created_at: new Date('2024-01-15').toISOString()
   }

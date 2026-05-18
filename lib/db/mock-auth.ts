@@ -3,7 +3,7 @@
 
 export const MOCK_USER = {
   id: 'local-user-id',
-  email: 'local@medfin.dev',
+  email: 'local@drwallet.dev',
   user_metadata: {
     name: 'Dr. Local Development'
   }

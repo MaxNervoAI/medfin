@@ -26,7 +26,7 @@ export function Wordmark({ className, size = 'md' }: WordmarkProps) {
       </div>
       <div>
         <div className={cn(sizes.name, 'font-semibold tracking-tight text-foreground leading-none')}>
-          medfin
+          Dr Wallet
         </div>
         <div className={cn(sizes.sub, 'text-muted-foreground tracking-widest uppercase mt-0.5 leading-none')}>
           cobranzas

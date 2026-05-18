@@ -4,7 +4,8 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {
   LayoutDashboard, FileText, Building2, PieChart,
-  LogOut, Menu, Plus, ChevronRight,
+  LogOut, Menu, Plus, ChevronRight, Calendar as CalendarIcon,
+  User,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useState } from 'react'
@@ -19,14 +20,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Wordmark } from '@/components/brand/Wordmark'
 import MobileNav from './MobileNav'
 
 const navItems = [
-  { href: '/dashboard',     label: 'Dashboard',    icon: LayoutDashboard },
+  { href: '/dashboard',     label: 'Inicio',        icon: LayoutDashboard },
   { href: '/prestaciones',  label: 'Prestaciones', icon: FileText },
-  { href: '/instituciones', label: 'Instituciones', icon: Building2 },
-  { href: '/presupuesto',   label: 'Dashboard 2',  icon: PieChart },
+  { href: '/instituciones', label: 'Lugares de trabajo', icon: Building2 },
+  { href: '/calendario',    label: 'Calendario',   icon: CalendarIcon },
 ]
 
 export default function AppShell({ children, nombre }: { children: React.ReactNode; nombre?: string }) {
@@ -49,7 +49,7 @@ export default function AppShell({ children, nombre }: { children: React.ReactNo
     pathname === href || (href !== '/dashboard' && pathname.startsWith(href))
 
   const currentNav = navItems.find(({ href }) => isActive(href))
-  const pageTitle = currentNav?.label ?? 'Medfin'
+  const pageTitle = currentNav?.label ?? 'Dr Wallet'
 
   return (
     <div
@@ -84,11 +84,20 @@ export default function AppShell({ children, nombre }: { children: React.ReactNo
       >
         {/* Brand */}
         <div className="px-5 py-5 border-b border-border">
-          <Wordmark />
+          <Link href="/dashboard" className="flex items-center gap-3 transition-opacity hover:opacity-80">
+            <img 
+              src="/logotemp2.png" 
+              alt="Dr Wallet Logo" 
+              className="h-8 w-8 object-contain"
+            />
+            <span className="font-display text-lg font-bold text-foreground">
+              Dr Wallet
+            </span>
+          </Link>
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 overflow-y-auto px-3 py-4 flex flex-col gap-1">
+        <nav className="flex-1 overflow-y-auto px-3 py-4 flex flex-col gap-1" suppressHydrationWarning>
           <p className="eyebrow px-3 pb-2">Navegación</p>
 
           {navItems.map(({ href, label, icon: Icon }) => (
@@ -119,7 +128,7 @@ export default function AppShell({ children, nombre }: { children: React.ReactNo
             <DropdownMenuTrigger asChild>
               <button className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-accent transition-colors min-h-[44px] text-left group">
                 <Avatar className="size-8 shrink-0">
-                  <AvatarFallback className="bg-primary text-primary-foreground text-xs font-semibold">
+                  <AvatarFallback className="bg-primary text-primary-foreground text-xs font-semibold" suppressHydrationWarning>
                     {iniciales}
                   </AvatarFallback>
                 </Avatar>
@@ -131,6 +140,12 @@ export default function AppShell({ children, nombre }: { children: React.ReactNo
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-52">
+              <DropdownMenuItem asChild>
+                <Link href="/perfil" className="cursor-pointer">
+                  <User className="size-4" />
+                  Mi Perfil
+                </Link>
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={cerrarSesion}
@@ -158,8 +173,19 @@ export default function AppShell({ children, nombre }: { children: React.ReactNo
             <Menu className="size-4" />
           </Button>
 
-          <div className="flex-1 min-w-0">
-            <p className="text-xs text-muted-foreground hidden sm:block">medfin · cobranzas</p>
+          <div className="flex items-center gap-3 flex-1 min-w-0 md:hidden">
+            <img 
+              src="/logotemp2.png" 
+              alt="Dr Wallet Logo" 
+              className="h-7 w-7 object-contain"
+            />
+            <span className="font-display text-base font-bold text-foreground">
+              Dr Wallet
+            </span>
+          </div>
+
+          <div className="flex-1 min-w-0 hidden md:block">
+            <p className="text-xs text-muted-foreground hidden sm:block">Dr Wallet · cobranzas</p>
             <h2 className="text-xl tracking-tight text-foreground leading-tight">{pageTitle}</h2>
           </div>
 

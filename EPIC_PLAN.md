@@ -154,6 +154,55 @@
 
 ---
 
+## Epic 10: Doctor Profile Page
+**Status:** ✅ COMPLETED (2026-05-18)
+**Notes:** Design completed with UX Strategist and Technical Director mentors. Hybrid specialty approach (Chilean medical specialties + psychologist + custom). Profile includes photo upload, contact info, bio, social links, and professional license.
+
+- [x] **E10.1** Create migration `009_perfil_extensions.sql`:
+  - Add columns to profiles: foto_url, telefono, email_contacto, numero_licencia, bio, linkedin_url, instagram_url, twitter_url
+- [x] **E10.2** Create migration `010_especialidades.sql`:
+  - New especialidades table (id, nombre, tipo enum, activa)
+  - New junction table perfil_especialidades
+  - RLS policies for both tables
+- [x] **E10.3** Create migration `011_seed_especialidades.sql`:
+  - Seed Chilean medical specialties (Cardiología, Dermatología, Neurología, Pediatría, etc.)
+  - Seed Psicología as separate type
+- [x] **E10.4** Setup Supabase Storage bucket `profile-photos`:
+  - Documented local file system storage (see STORAGE_SETUP.md)
+- [x] **E10.5** Implement API endpoints:
+  - GET /api/perfil - Fetch current user's profile
+  - PUT /api/perfil - Update profile
+  - POST /api/perfil/foto - Upload photo with validation
+  - GET /api/especialidades - List specialties
+- [x] **E10.6** Build UI components:
+  - app/perfil/page.tsx + PerfilClient.tsx
+  - PerfilView.tsx (read-only display)
+  - PerfilEdit.tsx (form with validation)
+  - EspecialidadSelector.tsx (dropdown + custom input)
+  - FotoUpload.tsx (drag-drop with auto-resize)
+- [x] **E10.7** Create custom hooks:
+  - Integrated into components (no separate hooks needed)
+- [x] **E10.8** Update navigation:
+  - Add "Mi Perfil" to sidebar navItems
+  - Add "Mi Perfil" to avatar dropdown
+  - Add /perfil to middleware publicPaths
+- [ ] **E10.9** Implement edge cases:
+  - Empty profile state with CTA
+  - Form validation (Chilean phone, email format)
+  - Photo upload error handling
+  - Concurrent edit detection
+  - localStorage auto-save (30s interval)
+- [ ] **E10.10** Mobile optimization:
+  - Stack layout on mobile
+  - Touch-friendly specialty chips (44px min)
+  - Camera integration for photo capture
+- [ ] **E10.11** Testing:
+  - Unit tests for hooks and validation
+  - Integration tests for profile update flow
+  - Edge case testing (empty profile, concurrent edits, network failures)
+
+---
+
 ## Execution Order
 
 **Phase 1 (Weeks 1–3): Foundation**

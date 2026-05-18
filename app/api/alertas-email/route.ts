@@ -49,9 +49,9 @@ export async function GET(request: Request) {
     const html = buildEmailHTML(profile.nombre ?? 'Doctor', alertas)
 
     const { error } = await resend.emails.send({
-      from: process.env.RESEND_FROM_EMAIL ?? 'Medfin <alertas@medfin.cl>',
+      from: process.env.RESEND_FROM_EMAIL ?? 'Dr Wallet <alertas@drwallet.cl>',
       to: profile.email,
-      subject: `Medfin: tienes ${alertas.length} alerta${alertas.length > 1 ? 's' : ''} pendiente${alertas.length > 1 ? 's' : ''}`,
+      subject: `Dr Wallet: tienes ${alertas.length} alerta${alertas.length > 1 ? 's' : ''} pendiente${alertas.length > 1 ? 's' : ''}`,
       html,
     })
 
@@ -89,7 +89,7 @@ function buildEmailHTML(nombre: string, alertas: ReturnType<typeof generarAlerta
     <head><meta charset="utf-8"></head>
     <body style="font-family: -apple-system, sans-serif; max-width: 560px; margin: 0 auto; padding: 24px; color: #1e293b;">
       <div style="background: #2563eb; border-radius: 12px; padding: 20px 24px; margin-bottom: 28px;">
-        <h1 style="color: white; margin: 0; font-size: 22px;">Medfin</h1>
+        <h1 style="color: white; margin: 0; font-size: 22px;">Dr Wallet</h1>
         <p style="color: #93c5fd; margin: 4px 0 0; font-size: 14px;">Resumen de alertas</p>
       </div>
 
@@ -98,13 +98,13 @@ function buildEmailHTML(nombre: string, alertas: ReturnType<typeof generarAlerta
 
       ${alertasHTML}
 
-      <a href="${process.env.NEXT_PUBLIC_APP_URL ?? 'https://medfin.cl'}/prestaciones"
+      <a href="${process.env.NEXT_PUBLIC_APP_URL ?? 'https://drwallet.cl'}/prestaciones"
          style="display: block; background: #2563eb; color: white; text-align: center; padding: 14px; border-radius: 10px; text-decoration: none; font-weight: 600; margin-top: 24px;">
-        Ver en Medfin
+        Ver en Dr Wallet
       </a>
 
       <p style="color: #94a3b8; font-size: 12px; margin-top: 32px; text-align: center;">
-        Medfin · Finanzas para profesionales de salud
+        Dr Wallet · Finanzas para profesionales de salud
       </p>
     </body>
     </html>

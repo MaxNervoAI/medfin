@@ -175,6 +175,22 @@ export default function DashboardClient({ nombre, prestaciones, instituciones, r
   const [showNueva, setShowNueva] = useState(false)
   const [showEdit, setShowEdit] = useState(false)
   const alertas = generarAlertas(localPrestaciones)
+  const [userEspecialidades, setUserEspecialidades] = useState<{ id: string; nombre: string }[]>([])
+
+  // Fetch user's specialties
+  useEffect(() => {
+    async function fetchEspecialidades() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const { data } = await supabase
+          .from('perfil_especialidades')
+          .select('especialidad_id, especialidades (id, nombre)')
+          .eq('perfil_id', user.id)
+        setUserEspecialidades(data?.map((e: any) => e.especialidades) || [])
+      }
+    }
+    fetchEspecialidades()
+  }, [supabase])
 
   // Nueva prestacion form state
   const [step, setStep] = useState<Step>('institucion')
@@ -538,7 +554,7 @@ export default function DashboardClient({ nombre, prestaciones, instituciones, r
         <AlertActionModal
           alerta={selectedAlert}
           prestacion={selectedPrestacion}
-          institucion={instituciones.find(i => i.id === selectedPrestacion.institucion_id)}
+          institucion={instituciones.find(i => i.id === selectedPrestacion.institucion_id) as any}
           onClose={() => setSelectedAlert(null)}
           onEmitirBoleta={handleEmitirBoleta}
           onMarcarPagada={handleMarcarPagada}
@@ -692,37 +708,68 @@ export default function DashboardClient({ nombre, prestaciones, instituciones, r
                   <p className="text-base font-semibold text-foreground mb-1">¿Qué tipo de prestación?</p>
                   <p className="text-sm text-muted-foreground">{institucionNombre}</p>
                 </div>
-                {tiposDisponibles.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {tiposDisponibles.map(tipo => (
-                      <button
-                        key={tipo}
-                        type="button"
-                        onClick={() => setTipoPrestacion(tipo)}
-                        className={cn(
-                          'px-3 py-1.5 rounded-md text-xs font-medium border transition-colors',
-                          tipoPrestacion === tipo
-                            ? 'bg-primary text-primary-foreground border-primary'
-                            : 'bg-background border-border hover:border-primary/40 text-foreground'
-                        )}
-                      >
-                        {tipo}
-                      </button>
-                    ))}
-                  </div>
-                )}
+
+                {/* Dropdown with specialties */}
                 <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="tipo-prestacion">
-                    {tiposDisponibles.length > 0 ? 'O escribe uno nuevo' : 'Tipo de prestación'}
-                  </Label>
-                  <Input
-                    id="tipo-prestacion"
-                    placeholder="Cirugía, Endoscopia, Turno..."
-                    value={tipoPrestacion}
-                    onChange={e => setTipoPrestacion(e.target.value)}
-                    autoFocus
-                  />
+                  <Label htmlFor="tipo-prestacion">Tipo de prestación</Label>
+                  <Select value={tipoPrestacion} onValueChange={setTipoPrestacion}>
+                    <SelectTrigger id="tipo-prestacion">
+                      <SelectValue placeholder="Selecciona..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {/* User's specialties */}
+                      {userEspecialidades.length > 0 && (
+                        <>
+                          <div className="px-2 py-1.5 text-xs text-muted-foreground font-medium">
+                            Tus especialidades
+                          </div>
+                          {userEspecialidades.map(esp => (
+                            <SelectItem key={esp.id} value={esp.nombre}>
+                              {esp.nombre}
+                            </SelectItem>
+                          ))}
+                        </>
+                      )}
+
+                      {/* Institution-specific rules */}
+                      {tiposDisponibles.length > 0 && (
+                        <>
+                          <div className="px-2 py-1.5 text-xs text-muted-foreground font-medium">
+                            {userEspecialidades.length > 0 ? 'Frecuentes en esta institución' : 'Tipos frecuentes'}
+                          </div>
+                          {tiposDisponibles.map(tipo => (
+                            <SelectItem key={tipo} value={tipo}>
+                              {tipo}
+                            </SelectItem>
+                          ))}
+                        </>
+                      )}
+
+                      {/* No options available */}
+                      {userEspecialidades.length === 0 && tiposDisponibles.length === 0 && (
+                        <div className="px-2 py-3 text-sm text-muted-foreground">
+                          No hay opciones disponibles
+                        </div>
+                      )}
+                    </SelectContent>
+                  </Select>
                 </div>
+
+                {/* Link to add specialty */}
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground">
+                    {userEspecialidades.length === 0 ? 'No tienes especialidades configuradas' : `${userEspecialidades.length} especialidad${userEspecialidades.length > 1 ? 'es' : ''} configurada${userEspecialidades.length > 1 ? 's' : ''}`}
+                  </span>
+                  <Link
+                    href="/perfil"
+                    onClick={() => setShowNueva(false)}
+                    className="text-primary hover:underline flex items-center gap-1"
+                  >
+                    <Plus className="w-3 h-3" />
+                    Agregar especialidad
+                  </Link>
+                </div>
+
                 {reglaAplicable && (
                   <Alert className="border-primary/30 bg-primary/5 py-2">
                     <CheckCircle2 className="size-3.5 text-primary" />

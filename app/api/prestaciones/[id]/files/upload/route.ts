@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createClient as createStorageClient } from '@supabase/supabase-js'
 import { randomUUID } from 'crypto'
-import path from 'path'
-import fs from 'fs/promises'
 
 export async function POST(
   req: NextRequest,
@@ -23,6 +22,10 @@ export async function POST(
     }
 
     const supabase = await createClient()
+    const storageClient = createStorageClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
     const { data: { user } } = await supabase.auth.getUser()
     
     if (!user) {
@@ -58,21 +61,29 @@ export async function POST(
       return NextResponse.json({ error: 'Tipo de archivo no permitido' }, { status: 400 })
     }
 
-    // Generate storage path
-    const fileExt = path.extname(file.name)
-    const fileName = `${randomUUID()}${fileExt}`
-    const storagePath = path.join(process.cwd(), '.data', 'prestaciones-files', user.id, fileName)
+    // Generate storage path: {user_id}/{prestacion_id}/{filename}
+    const fileExt = file.name.split('.').pop() || ''
+    const fileName = `${randomUUID()}.${fileExt}`
+    const storagePath = `${user.id}/${params.id}/${fileName}`
 
-    // Ensure directory exists
-    await fs.mkdir(path.dirname(storagePath), { recursive: true })
-
-    // Save file to disk
+    // Upload file to Supabase Storage
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
-    await fs.writeFile(storagePath, buffer)
+
+    const { data: uploadData, error: uploadError } = await storageClient.storage
+      .from('prestaciones-files')
+      .upload(storagePath, buffer, {
+        contentType: file.type,
+        upsert: false,
+      })
+
+    if (uploadError) {
+      console.error('Supabase Storage upload error:', uploadError)
+      return NextResponse.json({ error: 'Error al subir archivo a Supabase Storage' }, { status: 500 })
+    }
 
     // Save file metadata to database
-    const result = await supabase
+    const { data: fileData, error: insertError } = await supabase
       .from('prestaciones_files')
       .insert({
         prestacion_id: params.id,
@@ -83,14 +94,15 @@ export async function POST(
         storage_path: storagePath,
       })
       .select()
+      .single()
 
-    if (result.error) {
-      // Cleanup file if database insert fails
-      await fs.unlink(storagePath).catch(() => {})
+    if (insertError) {
+      // Cleanup file from Supabase Storage if database insert fails
+      await storageClient.storage.from('prestaciones-files').remove([storagePath]).catch(() => {})
       return NextResponse.json({ error: 'Error al guardar metadatos' }, { status: 500 })
     }
 
-    return NextResponse.json({ success: true, filename: file.name })
+    return NextResponse.json({ success: true, filename: file.name, file: fileData })
   } catch (error) {
     console.error('Upload error:', error)
     return NextResponse.json({ error: 'Error al subir archivo' }, { status: 500 })

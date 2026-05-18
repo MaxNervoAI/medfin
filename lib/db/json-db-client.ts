@@ -13,6 +13,60 @@ export function createJsonDbClient() {
       return {
         select: () => {
           return {
+            order: (orderColumn: string, { ascending }: { ascending: boolean }) => {
+              return {
+                range: (from: number, to: number) => {
+                  return {
+                    eq: (column: string, value: any) => {
+                      return {
+                        then: async (onfulfilled: any) => {
+                          const res = await fetch(`${API_BASE}/${table}?column=${column}&value=${value}&order=${orderColumn}&ascending=${ascending}&from=${from}&to=${to}`)
+                          const data = await res.json()
+                          return onfulfilled({ data, error: null })
+                        }
+                      }
+                    },
+                    gte: (column: string, value: any) => {
+                      return {
+                        then: async (onfulfilled: any) => {
+                          const res = await fetch(`${API_BASE}/${table}?gte=true&column=${column}&value=${value}&order=${orderColumn}&ascending=${ascending}&from=${from}&to=${to}`)
+                          const data = await res.json()
+                          return onfulfilled({ data, error: null })
+                        }
+                      }
+                    },
+                    lte: (column: string, value: any) => {
+                      return {
+                        then: async (onfulfilled: any) => {
+                          const res = await fetch(`${API_BASE}/${table}?lte=true&column=${column}&value=${value}&order=${orderColumn}&ascending=${ascending}&from=${from}&to=${to}`)
+                          const data = await res.json()
+                          return onfulfilled({ data, error: null })
+                        }
+                      }
+                    },
+                    then: async (onfulfilled: any) => {
+                      const res = await fetch(`${API_BASE}/${table}?order=${orderColumn}&ascending=${ascending}&from=${from}&to=${to}`)
+                      const data = await res.json()
+                      return onfulfilled({ data, error: null })
+                    }
+                  }
+                },
+                eq: (column: string, value: any) => {
+                  return {
+                    then: async (onfulfilled: any) => {
+                      const res = await fetch(`${API_BASE}/${table}?column=${column}&value=${value}&order=${orderColumn}&ascending=${ascending}`)
+                      const data = await res.json()
+                      return onfulfilled({ data, error: null })
+                    }
+                  }
+                },
+                then: async (onfulfilled: any) => {
+                  const res = await fetch(`${API_BASE}/${table}?order=${orderColumn}&ascending=${ascending}`)
+                  const data = await res.json()
+                  return onfulfilled({ data, error: null })
+                }
+              }
+            },
             eq: (column: string, value: any) => {
               return {
                 order: (orderColumn: string, { ascending }: { ascending: boolean }) => {
@@ -130,15 +184,15 @@ export function createJsonDbClient() {
       }
     },
     auth: {
-      getUser: async () => ({ data: { user: { id: userId, email: 'local@medfin.dev' } }, error: null }),
+      getUser: async () => ({ data: { user: { id: userId, email: 'local@drwallet.dev' } }, error: null }),
       getSession: async () => ({
         data: {
           session: {
             access_token: 'mock-token',
             refresh_token: 'mock-refresh',
-            user: { id: userId, email: 'local@medfin.dev' }
+            user: { id: userId, email: 'local@drwallet.dev' }
           },
-          user: { id: userId, email: 'local@medfin.dev' }
+          user: { id: userId, email: 'local@drwallet.dev' }
         },
         error: null
       }),

@@ -41,9 +41,12 @@ export async function GET(
   const value = searchParams.get('value')
   const neq = searchParams.get('neq') === 'true'
   const gte = searchParams.get('gte') === 'true'
+  const lte = searchParams.get('lte') === 'true'
   const all = searchParams.get('all') === 'true'
   const orderColumn = searchParams.get('order') || 'created_at'
   const ascending = searchParams.get('ascending') !== 'false'
+  const from = searchParams.get('from')
+  const to = searchParams.get('to')
 
   const data = await readJsonFile<any>(`${table}.json`)
   let filtered = data.filter((item: any) => item.user_id === MOCK_USER_ID)
@@ -55,6 +58,8 @@ export async function GET(
       filtered = filtered.filter((item: any) => item[column] !== value)
     } else if (gte) {
       filtered = filtered.filter((item: any) => item[column] >= value)
+    } else if (lte) {
+      filtered = filtered.filter((item: any) => item[column] <= value)
     } else {
       filtered = filtered.filter((item: any) => item[column] === value)
     }
@@ -68,6 +73,13 @@ export async function GET(
       return a[orderColumn] < b[orderColumn] ? 1 : -1
     }
   })
+
+  // Apply range pagination
+  if (from !== null && to !== null) {
+    const fromIndex = parseInt(from, 10)
+    const toIndex = parseInt(to, 10)
+    filtered = filtered.slice(fromIndex, toIndex + 1)
+  }
 
   return NextResponse.json(filtered)
 }

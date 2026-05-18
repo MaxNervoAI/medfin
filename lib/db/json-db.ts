@@ -56,6 +56,8 @@ class QueryResult {
   private orderColumn: string
   private orderAscending: boolean
   private limitCount: number | null
+  private rangeOffset: number | null
+  private rangeLimit: number | null
 
   constructor(
     filename: string,
@@ -63,7 +65,9 @@ class QueryResult {
     filters: Array<{ column: string; op: string; value: any }> = [],
     orderColumn = 'created_at',
     orderAscending = true,
-    limitCount: number | null = null
+    limitCount: number | null = null,
+    rangeOffset: number | null = null,
+    rangeLimit: number | null = null
   ) {
     this.filename = filename
     this.userId = userId
@@ -71,31 +75,33 @@ class QueryResult {
     this.orderColumn = orderColumn
     this.orderAscending = orderAscending
     this.limitCount = limitCount
+    this.rangeOffset = rangeOffset
+    this.rangeLimit = rangeLimit
   }
 
   eq(column: string, value: any) {
     const newFilters = [...this.filters, { column, op: 'eq', value }]
-    return new QueryResult(this.filename, this.userId, newFilters, this.orderColumn, this.orderAscending, this.limitCount)
+    return new QueryResult(this.filename, this.userId, newFilters, this.orderColumn, this.orderAscending, this.limitCount, this.rangeOffset, this.rangeLimit)
   }
 
   neq(column: string, value: any) {
     const newFilters = [...this.filters, { column, op: 'neq', value }]
-    return new QueryResult(this.filename, this.userId, newFilters, this.orderColumn, this.orderAscending, this.limitCount)
+    return new QueryResult(this.filename, this.userId, newFilters, this.orderColumn, this.orderAscending, this.limitCount, this.rangeOffset, this.rangeLimit)
   }
 
   gte(column: string, value: any) {
     const newFilters = [...this.filters, { column, op: 'gte', value }]
-    return new QueryResult(this.filename, this.userId, newFilters, this.orderColumn, this.orderAscending, this.limitCount)
+    return new QueryResult(this.filename, this.userId, newFilters, this.orderColumn, this.orderAscending, this.limitCount, this.rangeOffset, this.rangeLimit)
   }
 
   not(column: string, op: string, value: any) {
     const newFilters = [...this.filters, { column, op: 'not', value }]
-    return new QueryResult(this.filename, this.userId, newFilters, this.orderColumn, this.orderAscending, this.limitCount)
+    return new QueryResult(this.filename, this.userId, newFilters, this.orderColumn, this.orderAscending, this.limitCount, this.rangeOffset, this.rangeLimit)
   }
 
   or(query: string) {
     const newFilters = [...this.filters, { column: 'or', op: 'or', value: query }]
-    return new QueryResult(this.filename, this.userId, newFilters, this.orderColumn, this.orderAscending, this.limitCount)
+    return new QueryResult(this.filename, this.userId, newFilters, this.orderColumn, this.orderAscending, this.limitCount, this.rangeOffset, this.rangeLimit)
   }
 
   order(column: string, opts?: { ascending?: boolean }) {
@@ -105,12 +111,20 @@ class QueryResult {
       this.filters,
       column,
       opts?.ascending ?? true,
-      this.limitCount
+      this.limitCount,
+      this.rangeOffset,
+      this.rangeLimit
     )
   }
 
   limit(n: number) {
-    return new QueryResult(this.filename, this.userId, this.filters, this.orderColumn, this.orderAscending, n)
+    return new QueryResult(this.filename, this.userId, this.filters, this.orderColumn, this.orderAscending, n, this.rangeOffset, this.rangeLimit)
+  }
+
+  range(from: number, to: number) {
+    const offset = from
+    const limit = to - from + 1
+    return new QueryResult(this.filename, this.userId, this.filters, this.orderColumn, this.orderAscending, this.limitCount, offset, limit)
   }
 
   async single() {
@@ -137,8 +151,12 @@ class QueryResult {
         : (a[this.orderColumn] < b[this.orderColumn] ? 1 : -1)
     })
 
-    // Apply limit
-    if (this.limitCount) {
+    // Apply range (takes precedence over limit)
+    if (this.rangeOffset !== null && this.rangeLimit !== null) {
+      result = result.slice(this.rangeOffset, this.rangeOffset + this.rangeLimit)
+    }
+    // Apply limit (only if range not set)
+    else if (this.limitCount) {
       result = result.slice(0, this.limitCount)
     }
 
@@ -239,15 +257,15 @@ export async function createJsonDbClient() {
       }
     },
     auth: {
-      getUser: async () => ({ data: { user: { id: userId, email: 'local@medfin.dev' } }, error: null }),
+      getUser: async () => ({ data: { user: { id: userId, email: 'local@drwallet.dev' } }, error: null }),
       getSession: async () => ({
         data: {
           session: {
             access_token: 'mock-token',
             refresh_token: 'mock-refresh',
-            user: { id: userId, email: 'local@medfin.dev' }
+            user: { id: userId, email: 'local@drwallet.dev' }
           },
-          user: { id: userId, email: 'local@medfin.dev' }
+          user: { id: userId, email: 'local@drwallet.dev' }
         },
         error: null
       }),

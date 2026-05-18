@@ -88,6 +88,7 @@
     --font-family-sans: 'Plus Jakarta Sans', -apple-system, system-ui, sans-serif;
     --font-family-serif: 'Instrument Serif', 'Times New Roman', serif;
     --font-family-mono: 'JetBrains Mono', ui-monospace, monospace;
+    --font-family-display: 'Space Grotesk', -apple-system, system-ui, sans-serif;
   }
 
   * {
@@ -159,4 +160,64 @@
 /* ── Safe area for iPhone ──────────────────────────────────── */
 .pb-safe {
   padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+/* ── FullCalendar theme overrides ──────────────────────────── */
+.fc {
+  --fc-border-color: var(--border);
+  --fc-page-bg-color: var(--card);
+  --fc-neutral-bg-color: var(--muted);
+  --fc-list-event-hover-bg-color: var(--accent);
+  --fc-today-bg-color: color-mix(in srgb, var(--primary) 8%, transparent);
+  --fc-now-indicator-color: var(--destructive);
+  --fc-event-bg-color: var(--primary);
+  --fc-event-border-color: var(--primary);
+  --fc-event-text-color: var(--primary-foreground);
+  font-family: inherit;
+  font-size: 0.875rem;
+}
+
+.fc .fc-col-header-cell-cushion,
+.fc .fc-daygrid-day-number {
+  color: var(--foreground);
+  text-decoration: none;
+  font-weight: 500;
+  padding: 6px 8px;
+}
+
+.fc .fc-col-header-cell {
+  background: var(--muted);
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.fc .fc-timegrid-slot,
+.fc .fc-timegrid-axis-cushion,
+.fc .fc-timegrid-slot-label-cushion {
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+}
+
+.fc .fc-event {
+  border-radius: var(--radius-sm);
+  padding: 2px 4px;
+  font-size: 0.75rem;
+  border-width: 0;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.fc .fc-event:hover {
+  opacity: 0.9;
+  cursor: pointer;
+}
+
+.fc-theme-standard td,
+.fc-theme-standard th {
+  border-color: var(--border);
+}
+
+.fc-theme-standard .fc-scrollgrid {
+  border-color: var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
 }
