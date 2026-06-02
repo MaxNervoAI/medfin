@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react'
 import { generarAlertas, getMesActual, calcularFechaLimitePago, getTaxRate, cn } from '@/lib/utils'
 import type { Prestacion, Alerta, Institucion, ReglasPlazo, EstadoPrestacion } from '@/types'
 import { createClient } from '@/lib/supabase/client'
-import { ArrowRight, AlertTriangle, Clock, CheckCircle2, Plus, ArrowLeft, ArrowRight as ArrowRightIcon, Info } from 'lucide-react'
+import { ArrowRight, AlertTriangle, Clock, CheckCircle2, Plus, ArrowLeft, ArrowRight as ArrowRightIcon, Info, Zap } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -23,6 +23,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { toast } from 'sonner'
+import PagoAnticipadoModal from '@/components/ui/PagoAnticipadoModal'
 
 interface Props {
   nombre: string
@@ -173,6 +174,7 @@ export default function DashboardClient({ nombre, prestaciones, instituciones, r
   const [editingPrestacion, setEditingPrestacion] = useState<Prestacion | null>(null)
   const [localPrestaciones, setLocalPrestaciones] = useState(prestaciones)
   const [showNueva, setShowNueva] = useState(false)
+  const [showPagoAnticipado, setShowPagoAnticipado] = useState(false)
   const [showEdit, setShowEdit] = useState(false)
   const alertas = generarAlertas(localPrestaciones)
   const [userEspecialidades, setUserEspecialidades] = useState<{ id: string; nombre: string }[]>([])
@@ -426,6 +428,17 @@ export default function DashboardClient({ nombre, prestaciones, instituciones, r
       <PageHeader
         title={`Hola, ${primerNombre}`}
         subtitle={alertas.length > 0 ? `${alertas.length} ${alertas.length === 1 ? 'alerta pendiente' : 'alertas pendientes'} este mes` : 'Todo al día · sin alertas pendientes'}
+        actions={
+          <Button
+            size="sm"
+            variant="outline"
+            className="gap-1.5 border-primary/40 text-primary hover:bg-primary/10 hover:text-primary hover:border-primary"
+            onClick={() => setShowPagoAnticipado(true)}
+          >
+            <Zap className="size-3.5" />
+            Pago anticipado
+          </Button>
+        }
       />
 
       {/* Stats */}
@@ -956,6 +969,13 @@ export default function DashboardClient({ nombre, prestaciones, instituciones, r
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Pago Anticipado Modal */}
+      <PagoAnticipadoModal
+        open={showPagoAnticipado}
+        onClose={() => setShowPagoAnticipado(false)}
+        prestaciones={localPrestaciones}
+      />
     </div>
   )
 }
