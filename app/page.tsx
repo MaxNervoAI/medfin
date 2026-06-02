@@ -3,7 +3,6 @@ import Header from '@/components/landing/Header'
 import Hero from '@/components/landing/Hero'
 import Features from '@/components/landing/Features'
 import FinalCTA from '@/components/landing/FinalCTA'
-import LogoCloud from '@/components/landing/LogoCloud'
 import Footer from '@/components/landing/Footer'
 
 export const metadata: Metadata = {
@@ -30,7 +29,6 @@ export default function LandingPage() {
         <Hero />
         <Features />
         <FinalCTA />
-        <LogoCloud />
         <Footer />
       </div>
     </main>
