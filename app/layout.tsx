@@ -14,7 +14,13 @@ export const metadata: Metadata = {
     title: 'Dr Wallet',
   },
   icons: {
-    apple: '/icons/icon-192x192.png',
+    icon: [
+      { url: '/favicon-16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/favicon-32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/icon-192.png',   sizes: '192x192', type: 'image/png' },
+    ],
+    apple: '/apple-touch-icon.png',
+    shortcut: '/favicon-32.png',
   },
 }
 
@@ -22,7 +28,7 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
-  themeColor: '#0E7C66',
+  themeColor: '#2C6E44',
 }
 
 export default function RootLayout({

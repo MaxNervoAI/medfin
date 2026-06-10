@@ -1,23 +1,23 @@
 {
-  "name": "Dr Wallet — Finanzas para Profesionales de Salud",
+  "name": "Dr Wallet — Finanzas para profesionales independientes",
   "short_name": "Dr Wallet",
-  "description": "Controla tus cobranzas, boletas y presupuesto mensual como médico independiente.",
+  "description": "Controla tus cobranzas, boletas y presupuesto mensual como profesional independiente.",
   "start_url": "/dashboard",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#2563eb",
+  "background_color": "#EDEEE6",
+  "theme_color": "#2C6E44",
   "orientation": "portrait",
   "scope": "/",
   "lang": "es",
   "icons": [
     {
-      "src": "/icons/icon-192x192.png",
+      "src": "/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable any"
     },
     {
-      "src": "/icons/icon-512x512.png",
+      "src": "/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable any"

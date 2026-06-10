@@ -73,16 +73,13 @@ export default function LoginClient() {
           <div className="absolute bottom-3 left-3 h-1.5 w-1.5 rounded-full bg-border" />
           <div className="absolute bottom-3 right-3 h-1.5 w-1.5 rounded-full bg-border" />
 
-          {/* Logo + Brand */}
-          <div className="mb-6 flex items-center justify-center gap-3">
-            <img 
-              src="/logotemp2.png" 
-              alt="Dr Wallet Logo" 
-              className="h-8 w-8 object-contain"
+          {/* Logo */}
+          <div className="mb-6 flex items-center justify-center">
+            <img
+              src="/logo.png"
+              alt="Dr Wallet"
+              className="h-8 w-auto object-contain"
             />
-            <span className="font-display text-lg font-bold text-foreground">
-              Dr Wallet
-            </span>
           </div>
 
           <h3 className="mb-2 text-center text-lg font-semibold text-foreground">
@@ -205,7 +202,7 @@ export default function LoginClient() {
           transition={{ duration: 0.5, delay: 0.7 }}
           className="mt-8 text-center text-sm text-muted-foreground"
         >
-          Hecho para médicos chilenos
+          Hecho para profesionales chilenos
         </motion.p>
       </div>
     </section>

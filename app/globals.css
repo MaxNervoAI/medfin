@@ -10,6 +10,7 @@
   --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-primary-mid: var(--primary-mid);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
@@ -25,6 +26,7 @@
   --color-success-foreground: var(--success-foreground);
   --color-warning: var(--warning);
   --color-warning-foreground: var(--warning-foreground);
+  --color-surface-dark: var(--surface-dark);
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: var(--radius);
@@ -35,54 +37,59 @@
   --font-sans: var(--font-family-sans);
   --font-serif: var(--font-family-serif);
   --font-mono: var(--font-family-mono);
+  --font-display: var(--font-family-display);
 }
 
-/* ── Design tokens — Premium Medical-Finance ───────────────── */
+/* ── Design tokens — Dr Wallet warm cream ──────────────────── */
 @layer base {
   :root {
-    /* Backgrounds */
-    --background: oklch(0.985 0.004 95);
-    --foreground: oklch(0.148 0.03 230);
+    /* Backgrounds — warm cream palette */
+    --background: oklch(0.943 0.011 95);       /* #EDEEE6 cream */
+    --foreground: oklch(0.145 0.005 264);       /* #18191A ink */
 
-    /* Cards & Popovers */
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.148 0.03 230);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.148 0.03 230);
+    /* Cards — slightly lighter than cream */
+    --card: oklch(0.974 0.006 95);              /* #F8F8F2 surface */
+    --card-foreground: oklch(0.145 0.005 264);
+    --popover: oklch(0.974 0.006 95);
+    --popover-foreground: oklch(0.145 0.005 264);
 
-    /* Primary — emerald */
-    --primary: oklch(0.535 0.144 161);
-    --primary-foreground: oklch(1 0 0);
+    /* Primary — forest green */
+    --primary: oklch(0.44 0.12 155);            /* #2C6E44 */
+    --primary-foreground: oklch(0.99 0 0);
+    --primary-mid: oklch(0.65 0.13 155);        /* #4CAF72 lighter green for highlights */
 
-    /* Secondary — muted sage */
-    --secondary: oklch(0.93 0.01 95);
-    --secondary-foreground: oklch(0.148 0.03 230);
+    /* Secondary — cream-2 */
+    --secondary: oklch(0.908 0.013 95);         /* #E4E5DC */
+    --secondary-foreground: oklch(0.145 0.005 264);
 
     /* Muted */
-    --muted: oklch(0.93 0.01 95);
-    --muted-foreground: oklch(0.50 0.015 220);
+    --muted: oklch(0.908 0.013 95);
+    --muted-foreground: oklch(0.483 0.008 130); /* #6B6F68 */
 
-    /* Accent — soft sage */
-    --accent: oklch(0.935 0.025 151);
-    --accent-foreground: oklch(0.148 0.03 230);
+    /* Accent — green-light */
+    --accent: oklch(0.952 0.035 148);           /* #EBF3E7 */
+    --accent-foreground: oklch(0.44 0.12 155);
 
     /* Destructive */
     --destructive: oklch(0.42 0.155 22);
     --destructive-foreground: oklch(1 0 0);
 
     /* Status */
-    --success: oklch(0.535 0.12 160);
+    --success: oklch(0.44 0.12 155);
     --success-foreground: oklch(1 0 0);
     --warning: oklch(0.72 0.14 75);
-    --warning-foreground: oklch(0.148 0.03 230);
+    --warning-foreground: oklch(0.145 0.005 264);
 
-    /* Borders & Inputs */
-    --border: oklch(0.885 0.012 115);
-    --input: oklch(0.885 0.012 115);
-    --ring: oklch(0.535 0.144 161);
+    /* Borders */
+    --border: oklch(0.878 0.009 95);            /* #DDE0D8 */
+    --input: oklch(0.878 0.009 95);
+    --ring: oklch(0.44 0.12 155);
 
-    /* Radius base */
-    --radius: 0.75rem;
+    /* Dark surface (stats bar, mission section) */
+    --surface-dark: oklch(0.145 0.005 264);
+
+    /* Radius */
+    --radius: 0.625rem;
 
     /* Fonts */
     --font-family-sans: 'Plus Jakarta Sans', -apple-system, system-ui, sans-serif;
@@ -99,6 +106,7 @@
   html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
   }
 
   body {
@@ -106,14 +114,19 @@
     color: var(--foreground);
     font-family: var(--font-family-sans);
     font-feature-settings: 'cv11', 'ss01', 'ss03';
+    overflow-x: hidden;
   }
 }
 
-/* ── Utility classes ───────────────────────────────────────── */
+/* ── Typography utilities ──────────────────────────────────── */
 .font-serif {
   font-family: var(--font-family-serif);
   font-weight: 400;
   letter-spacing: -0.01em;
+}
+
+.font-display {
+  font-family: var(--font-family-display);
 }
 
 .font-mono-feature {
@@ -125,15 +138,65 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* ── Eyebrow label with colored dash ──────────────────────── */
 .eyebrow {
-  font-size: 10.5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.14em;
-  color: var(--muted-foreground);
-  font-weight: 600;
+  letter-spacing: 0.16em;
+  color: var(--primary);
+}
+.eyebrow::before {
+  content: '';
+  display: block;
+  width: 16px;
+  height: 2px;
+  background: currentColor;
+  border-radius: 1px;
+  flex-shrink: 0;
+}
+.eyebrow-light {
+  color: var(--primary-mid);
+}
+.eyebrow-light::before {
+  background: var(--primary-mid);
 }
 
-/* ── Animations ────────────────────────────────────────────── */
+/* ── Landing animation keyframes ──────────────────────────── */
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0.4deg); }
+  50%       { transform: translateY(-14px) rotate(-0.4deg); }
+}
+
+@keyframes shimmer-sweep {
+  from { background-position: -200% center; }
+  to   { background-position:  200% center; }
+}
+
+@keyframes pulse-live {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.5; transform: scale(0.75); }
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes hero-child-in {
+  from { opacity: 0; transform: translateY(22px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes cta-gradient-shift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(4px); }
   to   { opacity: 1; transform: none; }
@@ -144,8 +207,56 @@
   to   { opacity: 1; transform: none; }
 }
 
+/* ── Animation utility classes ─────────────────────────────── */
+.animate-float {
+  animation: float 5.5s ease-in-out infinite;
+}
+.animate-pulse-live {
+  animation: pulse-live 2s ease-in-out infinite;
+}
+.animate-toast-in {
+  animation: toast-in 0.55s 1.6s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+.animate-hero-child {
+  animation: hero-child-in 0.7s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+.animate-cta-gradient {
+  animation: cta-gradient-shift 7s ease infinite;
+  background-size: 200% 200%;
+}
+
+/* Shimmer overlay for primary CTA button */
+.btn-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.btn-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.15) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmer-sweep 2.8s ease infinite;
+}
+
+/* ── App screen animation ──────────────────────────────────── */
 .screen {
   animation: fadeIn 0.2s ease both;
+}
+
+/* ── Reduced motion: disable all landing animations ─────────── */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .animate-float,
+  .animate-pulse-live,
+  .animate-toast-in,
+  .animate-hero-child,
+  .animate-cta-gradient {
+    animation: none !important;
+  }
+  .btn-shimmer::after {
+    animation: none !important;
+  }
 }
 
 /* ── Scrollbar ─────────────────────────────────────────────── */

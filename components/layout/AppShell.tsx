@@ -84,15 +84,12 @@ export default function AppShell({ children, nombre }: { children: React.ReactNo
       >
         {/* Brand */}
         <div className="px-5 py-5 border-b border-border">
-          <Link href="/dashboard" className="flex items-center gap-3 transition-opacity hover:opacity-80">
-            <img 
-              src="/logotemp2.png" 
-              alt="Dr Wallet Logo" 
-              className="h-8 w-8 object-contain"
+          <Link href="/dashboard" className="flex items-center transition-opacity hover:opacity-80">
+            <img
+              src="/logo.png"
+              alt="Dr Wallet"
+              className="h-7 w-auto object-contain"
             />
-            <span className="font-display text-lg font-bold text-foreground">
-              Dr Wallet
-            </span>
           </Link>
         </div>
 
@@ -173,15 +170,12 @@ export default function AppShell({ children, nombre }: { children: React.ReactNo
             <Menu className="size-4" />
           </Button>
 
-          <div className="flex items-center gap-3 flex-1 min-w-0 md:hidden">
-            <img 
-              src="/logotemp2.png" 
-              alt="Dr Wallet Logo" 
-              className="h-7 w-7 object-contain"
+          <div className="flex items-center flex-1 min-w-0 md:hidden">
+            <img
+              src="/logo.png"
+              alt="Dr Wallet"
+              className="h-6 w-auto object-contain"
             />
-            <span className="font-display text-base font-bold text-foreground">
-              Dr Wallet
-            </span>
           </div>
 
           <div className="flex-1 min-w-0 hidden md:block">

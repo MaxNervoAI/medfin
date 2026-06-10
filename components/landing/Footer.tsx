@@ -1,66 +1,27 @@
-'use client';
-
-import { motion } from 'framer-motion';
-import { ArrowRight } from 'lucide-react';
+import Link from 'next/link';
+import Image from 'next/image';
 
 export default function Footer() {
-  const links = [
-    { label: 'Términos', href: '/terminos' },
-    { label: 'Privacidad', href: '/privacidad' },
-    { label: 'Contacto', href: '/contacto' },
-  ];
-
   return (
-    <footer className="relative w-full bg-background">
-      {/* Gradient Border */}
-      <div className="h-px w-full bg-gradient-to-r from-transparent via-border to-transparent" />
+    <footer className="border-t border-border bg-background px-8 py-8" aria-label="Pie de página">
+      <div className="mx-auto flex max-w-[1160px] flex-wrap items-center justify-between gap-4">
+        <Link href="/" className="transition-opacity hover:opacity-70">
+          <Image
+            src="/logo.png"
+            alt="Dr Wallet"
+            width={100}
+            height={29}
+            className="h-[26px] w-auto object-contain"
+          />
+        </Link>
 
-      <div className="mx-auto max-w-6xl px-6 py-16">
-        {/* Geographic Info */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="mb-12 text-center"
-        >
-          <p className="text-lg text-muted-foreground">
-            Usado por médicos y psicólogos en Santiago, Viña del Mar, y Concepción.
-          </p>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Hecho para prestadores chilenos, no software genérico.
-          </p>
-        </motion.div>
+        <nav className="flex flex-wrap items-center gap-6" aria-label="Legal">
+          <Link href="/terminos" className="text-[13px] text-muted-foreground transition-colors hover:text-foreground">Términos</Link>
+          <Link href="/privacidad" className="text-[13px] text-muted-foreground transition-colors hover:text-foreground">Privacidad</Link>
+          <Link href="/contacto" className="text-[13px] text-muted-foreground transition-colors hover:text-foreground">Contacto</Link>
+        </nav>
 
-        {/* Links */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="mb-8 flex flex-wrap items-center justify-center gap-8"
-        >
-          {links.map((link) => (
-            <a
-              key={link.label}
-              href={link.href}
-              className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-            >
-              {link.label}
-            </a>
-          ))}
-        </motion.div>
-
-        {/* Copyright */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="text-center text-sm text-muted-foreground"
-        >
-          © 2025 Dr Wallet
-        </motion.div>
+        <span className="text-[12px] text-muted-foreground">© 2026 Dr. Wallet SpA · Santiago, Chile</span>
       </div>
     </footer>
   );
