@@ -18,7 +18,7 @@ export default function FinalCTA() {
 
       <div className="relative z-10 mx-auto max-w-[640px]">
         <span className="mb-5 inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11.5px] font-semibold text-white/85">
-          Sin tarjeta de crédito
+          Beta abierta — acceso gratuito
         </span>
 
         <h2 className="font-serif text-[clamp(32px,4vw,56px)] leading-[1.1] tracking-[-0.02em] text-white">
@@ -27,7 +27,7 @@ export default function FinalCTA() {
         </h2>
 
         <p className="mx-auto mt-4 max-w-[480px] text-[16px] leading-[1.65] text-white/75">
-          30 días gratis, sin límites. Después desde <strong className="text-white">$9.990/mes</strong> — menos de lo que pierdes en una sola boleta olvidada.
+          Estamos en versión de prueba. Acceso completamente gratis mientras dure la beta.
         </p>
 
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
@@ -45,7 +45,7 @@ export default function FinalCTA() {
           </a>
         </div>
 
-        <p className="mt-6 text-[12px] text-white/42">Sin compromiso · Cancela cuando quieras · Datos encriptados</p>
+        <p className="mt-6 text-[12px] text-white/42">Sin tarjeta · Sin compromiso · Datos encriptados</p>
       </div>
     </section>
   );

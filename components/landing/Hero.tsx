@@ -152,7 +152,7 @@ export default function Hero() {
               href="/login"
               className="btn-shimmer relative inline-flex items-center justify-center gap-2 rounded-[12px] bg-primary px-7 py-[15px] text-[15px] font-bold text-primary-foreground shadow-[0_4px_16px_oklch(0.44_0.12_155/0.3)] transition-all hover:-translate-y-0.5 hover:bg-[oklch(0.348_0.10_155)] hover:shadow-[0_8px_28px_oklch(0.44_0.12_155/0.4)] focus-visible:outline-2 focus-visible:outline-primary"
             >
-              Empezar gratis — 30 días
+              Empezar gratis — Beta abierta
             </Link>
             <a
               href="#como-funciona"
