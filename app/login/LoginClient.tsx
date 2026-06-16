@@ -19,6 +19,22 @@ export default function LoginClient() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )
 
+  async function handleGoogleLogin() {
+    setLoading(true)
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      })
+      if (error) throw error
+    } catch (error: any) {
+      toast.error(error.message || 'Error al iniciar sesión con Google')
+      setLoading(false)
+    }
+  }
+
   async function handleAuth() {
     if (!email || !password) {
       toast.error('Por favor completa todos los campos')
@@ -141,10 +157,10 @@ export default function LoginClient() {
               <div className="h-px flex-1 bg-border" />
             </div>
 
-            {/* Google - Non-functional */}
             <button
-              disabled
-              className="flex h-9 w-full items-center justify-center gap-2 rounded-md border border-border bg-background text-sm font-medium text-muted-foreground transition-colors opacity-50 cursor-not-allowed"
+              onClick={handleGoogleLogin}
+              disabled={loading}
+              className="flex h-9 w-full items-center justify-center gap-2 rounded-md border border-border bg-background text-sm font-medium text-foreground transition-colors hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <svg width="16" height="16" viewBox="0 0 24 24">
                 <path
@@ -164,7 +180,7 @@ export default function LoginClient() {
                   d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                 />
               </svg>
-              Continuar con Google (Próximamente)
+              Continuar con Google
             </button>
 
             {/* Microsoft - Non-functional */}
