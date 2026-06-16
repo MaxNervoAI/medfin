@@ -48,9 +48,9 @@ export async function middleware(request: NextRequest) {
   const isJsonDbMode = process.env.NEXT_PUBLIC_USE_JSON_DB === 'true' && process.env.NODE_ENV === 'development'
   const isDebug = isDebugQuery || isJsonDbMode
 
-  // Rutas públicas (incluyendo dashboard sin autenticación y landing page)
-  const publicPaths = ['/', '/login', '/auth/callback', '/dashboard', '/instituciones', '/prestaciones', '/presupuesto', '/calendario', '/perfil']
-  if (publicPaths.some(p => pathname.startsWith(p))) {
+  // Rutas públicas (no requieren autenticación)
+  const publicPaths = ['/', '/login', '/auth/callback']
+  if (publicPaths.some(p => pathname === p || pathname.startsWith(p + '/'))) {
     return supabaseResponse
   }
 
@@ -61,7 +61,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // Si hay sesión y va a /, redirigir a dashboard
-  if (pathname === '/') {
+  if (user && pathname === '/') {
     const url = request.nextUrl.clone()
     url.pathname = '/dashboard'
     return NextResponse.redirect(url)

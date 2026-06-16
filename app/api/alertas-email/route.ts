@@ -9,10 +9,10 @@ import type { Prestacion } from '@/types'
 // GET /api/alertas-email?secret=TU_SECRET
 export async function GET(request: Request) {
   const resend = new Resend(process.env.RESEND_API_KEY)
-  const { searchParams } = new URL(request.url)
-  const secret = searchParams.get('secret')
+  const authHeader = request.headers.get('authorization')
+  const secret = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null
 
-  if (secret !== process.env.CRON_SECRET) {
+  if (!secret || secret !== process.env.CRON_SECRET) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

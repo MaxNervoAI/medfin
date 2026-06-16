@@ -36,8 +36,13 @@ export async function POST(request: Request) {
       }, { status: 400 })
     }
 
-    // Generate storage path (using local file system like existing implementation)
-    const fileExt = path.extname(file.name)
+    // Derive extension from validated MIME type (never trust file.name)
+    const mimeToExt: Record<string, string> = {
+      'image/jpeg': '.jpg',
+      'image/png': '.png',
+      'image/webp': '.webp',
+    }
+    const fileExt = mimeToExt[file.type]
     const fileName = `${randomUUID()}${fileExt}`
     const storagePath = path.join(process.cwd(), '.data', 'profile-photos', user.id, fileName)
 

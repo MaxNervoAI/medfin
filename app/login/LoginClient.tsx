@@ -182,20 +182,6 @@ export default function LoginClient() {
               </svg>
               Continuar con Google
             </button>
-
-            {/* Microsoft - Non-functional */}
-            <button
-              disabled
-              className="flex h-9 w-full items-center justify-center gap-2 rounded-md border border-border bg-background text-sm font-medium text-muted-foreground transition-colors opacity-50 cursor-not-allowed"
-            >
-              <svg width="16" height="16" viewBox="0 0 23 23" fill="none">
-                <path fill="#f35325" d="M1 1h10v10H1z" />
-                <path fill="#81bc06" d="M12 1h10v10H12z" />
-                <path fill="#05a6f0" d="M1 12h10v10H1z" />
-                <path fill="#ffba08" d="M12 12h10v10H12z" />
-              </svg>
-              Continuar con Microsoft (Próximamente)
-            </button>
           </div>
 
           <p className="mt-4 text-center text-xs text-muted-foreground">

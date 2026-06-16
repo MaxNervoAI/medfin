@@ -1,5 +1,20 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { z } from 'zod'
+
+const URL_OPTIONAL = z.string().url().optional().or(z.literal('').transform(() => undefined))
+
+const profileUpdateSchema = z.object({
+  nombre: z.string().min(1).max(100).optional(),
+  telefono: z.string().max(20).optional().or(z.literal('').transform(() => undefined)),
+  email_contacto: z.string().email().optional().or(z.literal('').transform(() => undefined)),
+  numero_licencia: z.string().max(50).optional().or(z.literal('').transform(() => undefined)),
+  bio: z.string().max(500).optional().or(z.literal('').transform(() => undefined)),
+  linkedin_url: URL_OPTIONAL,
+  instagram_url: URL_OPTIONAL,
+  twitter_url: URL_OPTIONAL,
+  especialidades: z.array(z.object({ id: z.string().uuid() })).optional(),
+})
 
 export async function GET(request: Request) {
   try {
@@ -18,7 +33,8 @@ export async function GET(request: Request) {
       .single()
 
     if (profileError) {
-      return NextResponse.json({ error: profileError.message }, { status: 500 })
+      console.error('Profile fetch error:', profileError)
+      return NextResponse.json({ error: 'Failed to fetch profile' }, { status: 500 })
     }
 
     // Fetch user's specialties
@@ -28,7 +44,8 @@ export async function GET(request: Request) {
       .eq('perfil_id', user.id)
 
     if (especialidadesError) {
-      return NextResponse.json({ error: especialidadesError.message }, { status: 500 })
+      console.error('Especialidades fetch error:', especialidadesError)
+      return NextResponse.json({ error: 'Failed to fetch profile' }, { status: 500 })
     }
 
     return NextResponse.json({
@@ -50,6 +67,11 @@ export async function PUT(request: Request) {
     }
 
     const body = await request.json()
+    const parsed = profileUpdateSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'Invalid input', details: parsed.error.flatten().fieldErrors }, { status: 400 })
+    }
+
     const {
       nombre,
       telefono,
@@ -60,7 +82,7 @@ export async function PUT(request: Request) {
       instagram_url,
       twitter_url,
       especialidades
-    } = body
+    } = parsed.data
 
     // Update profile
     const { error: updateError } = await supabase
@@ -79,7 +101,8 @@ export async function PUT(request: Request) {
       .eq('id', user.id)
 
     if (updateError) {
-      return NextResponse.json({ error: updateError.message }, { status: 500 })
+      console.error('Profile update error:', updateError)
+      return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 })
     }
 
     // Fetch updated profile
@@ -110,7 +133,8 @@ export async function PUT(request: Request) {
           .select() as any
 
         if (insertResult.error) {
-          return NextResponse.json({ error: insertResult.error.message }, { status: 500 })
+          console.error('Especialidades insert error:', insertResult.error)
+          return NextResponse.json({ error: 'Failed to update specialties' }, { status: 500 })
         }
       }
     }
