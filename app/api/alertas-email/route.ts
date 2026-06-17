@@ -6,7 +6,7 @@ import { generarAlertas } from '@/lib/utils'
 import type { Prestacion } from '@/types'
 
 // Este endpoint puede llamarse desde un cron job (ej. Vercel Cron)
-// GET /api/alertas-email?secret=TU_SECRET
+// Requiere header: Authorization: Bearer <CRON_SECRET>
 export async function GET(request: Request) {
   const resend = new Resend(process.env.RESEND_API_KEY)
   const authHeader = request.headers.get('authorization')

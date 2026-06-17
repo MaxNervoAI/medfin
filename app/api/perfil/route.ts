@@ -114,26 +114,38 @@ export async function PUT(request: Request) {
 
     // Update specialties if provided
     if (especialidades && Array.isArray(especialidades)) {
-      // Delete existing specialties
-      await supabase
+      // Fetch existing specialties so we can restore them if insert fails
+      const { data: existing } = await supabase
+        .from('perfil_especialidades')
+        .select('especialidad_id')
+        .eq('perfil_id', user.id)
+
+      const { error: deleteError } = await supabase
         .from('perfil_especialidades')
         .delete()
         .eq('perfil_id', user.id)
 
-      // Insert new specialties
+      if (deleteError) {
+        return NextResponse.json({ error: 'Failed to update specialties' }, { status: 500 })
+      }
+
       if (especialidades.length > 0) {
         const specialtyInserts = especialidades.map((especialidad: any) => ({
           perfil_id: user.id,
           especialidad_id: especialidad.id
         }))
 
-        const insertResult = await supabase
+        const { error: insertError } = await supabase
           .from('perfil_especialidades')
           .insert(specialtyInserts)
-          .select() as any
 
-        if (insertResult.error) {
-          console.error('Especialidades insert error:', insertResult.error)
+        if (insertError) {
+          // Restore previous specialties
+          if (existing && existing.length > 0) {
+            await supabase.from('perfil_especialidades').insert(
+              existing.map(e => ({ perfil_id: user.id, especialidad_id: e.especialidad_id }))
+            )
+          }
           return NextResponse.json({ error: 'Failed to update specialties' }, { status: 500 })
         }
       }

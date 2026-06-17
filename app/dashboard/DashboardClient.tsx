@@ -90,7 +90,6 @@ function AlertaRow({ alerta, onClick }: { alerta: Alerta; onClick: () => void })
 }
 
 function MiniBarChart({ prestaciones }: { prestaciones: Prestacion[] }) {
-  console.log('MiniBarChart prestaciones:', prestaciones.length, prestaciones)
   const today = new Date()
   const months: Array<{ key: string; label: string; cobrado: number; proyectado: number }> = []
   for (let i = -2; i <= 3; i++) {
@@ -115,7 +114,6 @@ function MiniBarChart({ prestaciones }: { prestaciones: Prestacion[] }) {
     if (p.estado === 'pagada') m.cobrado += montoNeto
     else m.proyectado += montoNeto
   })
-  console.log('MiniBarChart months data:', months)
   const max = Math.max(...months.map(m => m.cobrado + m.proyectado), 1)
   const currentKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`
 
@@ -303,10 +301,16 @@ export default function DashboardClient({ nombre, prestaciones, instituciones, r
     setLoading(false)
     if (dbError) { setError(dbError.message || 'No se pudo guardar'); return }
     
-    // Handle file upload if selected (for now, just log it)
-    if (selectedFile) {
-      console.log('File selected for upload:', selectedFile.name, selectedFile.size, selectedFile.type)
-      // TODO: Implement actual file upload to storage
+    if (selectedFile && data?.id) {
+      const uploadForm = new FormData()
+      uploadForm.append('file', selectedFile)
+      const uploadRes = await fetch(`/api/prestaciones/${data.id}/files/upload`, {
+        method: 'POST',
+        body: uploadForm,
+      })
+      if (!uploadRes.ok) {
+        toast.error('Prestación guardada, pero no se pudo subir el archivo')
+      }
     }
     
     setLocalPrestaciones(prev => [data as Prestacion, ...prev])
@@ -633,9 +637,17 @@ export default function DashboardClient({ nombre, prestaciones, instituciones, r
               </Button>
               <Button
                 onClick={async () => {
-                  if (selectedFile) {
-                    console.log('File upload for edit:', selectedFile.name)
-                    // TODO: Implement actual file upload
+                  if (selectedFile && editingPrestacion?.id) {
+                    const uploadForm = new FormData()
+                    uploadForm.append('file', selectedFile)
+                    const uploadRes = await fetch(`/api/prestaciones/${editingPrestacion.id}/files/upload`, {
+                      method: 'POST',
+                      body: uploadForm,
+                    })
+                    if (!uploadRes.ok) {
+                      toast.error('No se pudo subir el archivo')
+                      return
+                    }
                   }
                   toast.success('Prestación actualizada')
                   setShowEdit(false)

@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import {
   LayoutDashboard, FileText, Building2, PieChart,
   LogOut, Menu, Plus, ChevronRight, Calendar as CalendarIcon,
-  User,
+  User, Calculator,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useState } from 'react'
@@ -27,6 +27,7 @@ const navItems = [
   { href: '/prestaciones',  label: 'Prestaciones', icon: FileText },
   { href: '/instituciones', label: 'Lugares de trabajo', icon: Building2 },
   { href: '/calendario',    label: 'Calendario',   icon: CalendarIcon },
+  { href: '/presupuesto',   label: 'Presupuesto',  icon: Calculator },
 ]
 
 export default function AppShell({ children, nombre }: { children: React.ReactNode; nombre?: string }) {

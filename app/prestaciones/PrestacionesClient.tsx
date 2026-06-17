@@ -223,6 +223,10 @@ export default function PrestacionesClient({ prestaciones: init, instituciones, 
   function closeNueva() { setShowNueva(false) }
 
   async function marcarBoletaEmitida(prestacion: Prestacion, fecha: string) {
+    if (prestacion.estado !== 'realizada') {
+      toast.error('Solo se puede emitir boleta de prestaciones en estado "realizada"')
+      return
+    }
     const fechaLimitePago = calcularFechaLimitePago(fecha)
     const { error } = await supabase
       .from('prestaciones')
@@ -239,6 +243,10 @@ export default function PrestacionesClient({ prestaciones: init, instituciones, 
   }
 
   async function marcarPagada(prestacion: Prestacion, fecha: string) {
+    if (prestacion.estado !== 'boleta_emitida') {
+      toast.error('Solo se puede marcar como pagada una prestación con boleta emitida')
+      return
+    }
     const { error } = await supabase
       .from('prestaciones')
       .update({ estado: 'pagada', fecha_pago_recibido: fecha })

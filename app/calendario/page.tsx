@@ -212,15 +212,43 @@ function CalendarContent() {
   };
 
   const handleImportICS = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    // TODO: Fix user_id requirement for import functionality
-    toast.error('Import functionality temporarily disabled - requires user context');
-    return;
+    const file = event.target.files?.[0];
+    if (!file) return;
+    event.target.value = '';
+    try {
+      const text = await file.text();
+      const parsed = parseICS(text);
+      const { valid, invalid } = validateImportedAppointments(parsed);
+      if (valid.length === 0) {
+        toast.error('No se encontraron citas válidas en el archivo');
+        return;
+      }
+      await Promise.all(valid.map(apt => createAppointment.mutateAsync(apt)));
+      toast.success(`${valid.length} cita(s) importada(s)${invalid.length > 0 ? `, ${invalid.length} ignorada(s) por errores` : ''}`);
+      refetch();
+    } catch {
+      toast.error('Error al importar archivo ICS');
+    }
   };
 
   const handleImportCSV = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    // TODO: Fix user_id requirement for import functionality
-    toast.error('Import functionality temporarily disabled - requires user context');
-    return;
+    const file = event.target.files?.[0];
+    if (!file) return;
+    event.target.value = '';
+    try {
+      const text = await file.text();
+      const parsed = parseCSV(text);
+      const { valid, invalid } = validateImportedAppointments(parsed);
+      if (valid.length === 0) {
+        toast.error('No se encontraron citas válidas en el archivo');
+        return;
+      }
+      await Promise.all(valid.map(apt => createAppointment.mutateAsync(apt)));
+      toast.success(`${valid.length} cita(s) importada(s)${invalid.length > 0 ? `, ${invalid.length} ignorada(s) por errores` : ''}`);
+      refetch();
+    } catch {
+      toast.error('Error al importar archivo CSV');
+    }
   };
 
   const formatDateForFilename = (date: Date): string => {
