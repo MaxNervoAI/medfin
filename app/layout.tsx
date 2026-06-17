@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next'
+import Script from 'next/script'
 import './globals.css'
 import ErrorBoundary from '@/components/ui/ErrorBoundary'
 import { Toaster } from '@/components/ui/sonner'
@@ -47,6 +48,13 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="Dr Wallet" />
         <meta name="msapplication-TileColor" content="#0E7C66" />
       </head>
+      <Script src="https://www.googletagmanager.com/gtag/js?id=G-W8HQ0951XQ" strategy="afterInteractive" />
+      <Script id="ga4-init" strategy="afterInteractive">{`
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-W8HQ0951XQ');
+      `}</Script>
       <body className="antialiased">
         <QueryProvider>
           <ErrorBoundary>
