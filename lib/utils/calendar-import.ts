@@ -2,12 +2,12 @@ import { parse, format } from 'date-fns';
 
 export interface ImportedAppointment {
   titulo: string;
-  descripcion?: string;
+  descripcion?: string | null;
   fecha_inicio: string;
   fecha_fin: string;
   estado: string;
-  notas?: string;
-  institucion_id?: string;
+  notas?: string | null;
+  institucion_id?: string | null;
 }
 
 /**

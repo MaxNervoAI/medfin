@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import {
   LayoutDashboard, FileText, Building2,
   LogOut, Menu, ChevronRight, Calendar as CalendarIcon,
-  User, Calculator, Settings,
+  User,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useState } from 'react'
@@ -24,7 +24,6 @@ const navItems = [
   { href: '/dashboard',    label: 'Inicio',        icon: LayoutDashboard },
   { href: '/prestaciones', label: 'Prestaciones',  icon: FileText },
   { href: '/calendario',   label: 'Calendario',    icon: CalendarIcon },
-  { href: '/presupuesto',  label: 'Presupuesto',   icon: Calculator },
 ]
 
 const configItems = [
@@ -124,20 +123,7 @@ export default function AppShell({ children, nombre }: { children: React.ReactNo
 
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto px-3 py-4 flex flex-col gap-1" suppressHydrationWarning>
-          <p className="eyebrow px-3 pb-2">Navegación</p>
-
           {navItems.map(({ href, label, icon: Icon }) => (
-            <NavLink key={href} href={href} label={label} Icon={Icon} active={isActive(href)} onClick={() => setSidebarOpen(false)} />
-          ))}
-
-          <div className="mt-4 mb-1">
-            <p className="eyebrow px-3 pb-2 flex items-center gap-1.5">
-              <Settings className="size-3" />
-              Configuración
-            </p>
-          </div>
-
-          {configItems.map(({ href, label, icon: Icon }) => (
             <NavLink key={href} href={href} label={label} Icon={Icon} active={isActive(href)} onClick={() => setSidebarOpen(false)} />
           ))}
         </nav>
@@ -159,10 +145,18 @@ export default function AppShell({ children, nombre }: { children: React.ReactNo
                 <ChevronRight className="size-4 text-muted-foreground group-hover:translate-x-0.5 transition-transform shrink-0" />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-52">
+            <DropdownMenuContent align="end" side="top" className="w-52 mb-1">
+              {configItems.map(({ href, label, icon: Icon }) => (
+                <DropdownMenuItem key={href} asChild>
+                  <Link href={href} onClick={() => setSidebarOpen(false)} className="flex items-center gap-2">
+                    <Icon className="size-4" />
+                    {label}
+                  </Link>
+                </DropdownMenuItem>
+              ))}
               <DropdownMenuItem
                 onClick={cerrarSesion}
-                className="text-destructive focus:text-destructive"
+                className="text-destructive focus:text-destructive mt-1 border-t border-border"
               >
                 <LogOut className="size-4" />
                 Cerrar sesión

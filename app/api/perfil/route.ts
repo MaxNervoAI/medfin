@@ -135,9 +135,9 @@ export async function PUT(request: Request) {
           especialidad_id: especialidad.id
         }))
 
-        const { error: insertError } = await supabase
+        const { error: insertError } = await (supabase
           .from('perfil_especialidades')
-          .insert(specialtyInserts)
+          .insert(specialtyInserts) as unknown as Promise<{ error: { message: string } | null }>)
 
         if (insertError) {
           // Restore previous specialties

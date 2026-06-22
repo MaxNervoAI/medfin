@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Money } from '@/components/ui/Money'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { toast } from 'sonner'
-import { Zap, CheckCircle2, TrendingUp, Clock } from 'lucide-react'
+import { Zap, CheckCircle2, TrendingUp, Clock, FlaskConical } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { Prestacion } from '@/types'
 
@@ -106,6 +106,14 @@ export default function PagoAnticipadoModal({ open, onClose, prestaciones }: Pro
         </DialogHeader>
 
         <Separator className="shrink-0" />
+
+        {/* Beta banner */}
+        <div className="flex items-start gap-3 px-6 py-3 bg-warning/10 border-b border-warning/20">
+          <FlaskConical className="size-4 text-warning shrink-0 mt-0.5" />
+          <p className="text-xs text-warning leading-relaxed">
+            <span className="font-semibold">Función en desarrollo (beta).</span> Esta característica está siendo desarrollada y no se garantiza su disponibilidad ni funcionamiento en producción.
+          </p>
+        </div>
 
         {/* Body: prestacion list */}
         <div className="flex-1 overflow-y-auto">

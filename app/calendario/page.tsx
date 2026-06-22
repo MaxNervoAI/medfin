@@ -223,7 +223,7 @@ function CalendarContent() {
         toast.error('No se encontraron citas válidas en el archivo');
         return;
       }
-      await Promise.all(valid.map(apt => createAppointment.mutateAsync(apt)));
+      await Promise.all(valid.map(apt => createAppointment.mutateAsync({ ...apt, descripcion: apt.descripcion ?? null, notas: apt.notas ?? null, institucion_id: apt.institucion_id ?? null })));
       toast.success(`${valid.length} cita(s) importada(s)${invalid.length > 0 ? `, ${invalid.length} ignorada(s) por errores` : ''}`);
       refetch();
     } catch {
@@ -243,7 +243,7 @@ function CalendarContent() {
         toast.error('No se encontraron citas válidas en el archivo');
         return;
       }
-      await Promise.all(valid.map(apt => createAppointment.mutateAsync(apt)));
+      await Promise.all(valid.map(apt => createAppointment.mutateAsync({ ...apt, descripcion: apt.descripcion ?? null, notas: apt.notas ?? null, institucion_id: apt.institucion_id ?? null })));
       toast.success(`${valid.length} cita(s) importada(s)${invalid.length > 0 ? `, ${invalid.length} ignorada(s) por errores` : ''}`);
       refetch();
     } catch {

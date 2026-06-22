@@ -87,13 +87,19 @@ export async function getInstitutions(): Promise<Institution[]> {
  * Create a new appointment
  */
 export async function createAppointment(
-  appointment: Omit<Appointment, 'id' | 'created_at' | 'updated_at'>
+  appointment: Omit<Appointment, 'id' | 'created_at' | 'updated_at' | 'user_id'> & { user_id?: string }
 ): Promise<Appointment> {
   const supabase = createClient();
-  
+
+  let user_id = appointment.user_id
+  if (!user_id) {
+    const { data: { user } } = await supabase.auth.getUser()
+    user_id = user?.id
+  }
+
   const { data, error } = await supabase
     .from('appointments')
-    .insert(appointment)
+    .insert({ ...appointment, user_id })
     .select()
     .single();
 
