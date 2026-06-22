@@ -313,10 +313,41 @@ export default function PrestacionDetalle({ prestacion: p, onBoletaEmitida, onPa
       )}
 
       {/* Archivos adjuntos */}
-      {files.length > 0 && (
-        <div className="mb-5">
-          <p className="text-xs font-medium text-muted-foreground mb-2">Archivos adjuntos · {files.length}</p>
-          <div className="flex flex-col gap-2">
+      <div className="mb-5">
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-xs font-medium text-muted-foreground">
+            Archivos adjuntos{files.length > 0 ? ` · ${files.length}` : ''}
+          </p>
+          <div className="flex items-center gap-2">
+            {selectedFile && (
+              <button
+                type="button"
+                onClick={handleUpload}
+                disabled={uploading}
+                className="text-xs text-primary hover:underline disabled:opacity-50"
+              >
+                {uploading ? 'Subiendo…' : `Subir "${selectedFile.name}"`}
+              </button>
+            )}
+            <input
+              id="files-upload"
+              type="file"
+              accept="image/*,.pdf,.doc,.docx,.txt,.md,.xml"
+              onChange={e => setSelectedFile(e.target.files?.[0] || null)}
+              className="sr-only"
+            />
+            <button
+              type="button"
+              onClick={() => document.getElementById('files-upload')?.click()}
+              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <Paperclip className="size-3" />
+              Adjuntar
+            </button>
+          </div>
+        </div>
+        {files.length > 0 && (
+        <div className="flex flex-col gap-2">
             {files.map(file => {
               const isImage = file.file_type.startsWith('image/')
               const isText = file.file_type.startsWith('text/') || file.file_type === 'application/xml'
@@ -402,8 +433,8 @@ export default function PrestacionDetalle({ prestacion: p, onBoletaEmitida, onPa
               )
             })}
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Image lightbox */}
       <Dialog open={!!lightboxUrl} onOpenChange={open => !open && setLightboxUrl(null)}>
