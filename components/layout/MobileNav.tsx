@@ -2,14 +2,14 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, FileText, Building2, Calendar as CalendarIcon } from 'lucide-react'
+import { LayoutDashboard, FileText, Calendar as CalendarIcon, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const navItems = [
-  { href: '/dashboard',     label: 'Inicio',        icon: LayoutDashboard },
-  { href: '/prestaciones',  label: 'Prestaciones', icon: FileText },
-  { href: '/instituciones', label: 'Lugares',      icon: Building2 },
-  { href: '/calendario',    label: 'Calendario',   icon: CalendarIcon },
+  { href: '/dashboard',    label: 'Inicio',        icon: LayoutDashboard },
+  { href: '/prestaciones', label: 'Prestaciones',  icon: FileText },
+  { href: '/calendario',   label: 'Calendario',    icon: CalendarIcon },
+  { href: '/perfil',       label: 'Perfil',        icon: User },
 ]
 
 export default function MobileNav() {

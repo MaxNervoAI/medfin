@@ -1,4 +1,22 @@
 export type EstadoPrestacion = 'realizada' | 'boleta_emitida' | 'pagada'
+
+export type InstitucionDirectorioTipo =
+  | 'hospital_publico'
+  | 'clinica_privada'
+  | 'centro_medico'
+  | 'red_medica'
+  | 'otro'
+
+export interface InstitucionDirectorio {
+  id: string
+  nombre: string
+  rut: string | null
+  ciudad: string | null
+  region: string | null
+  tipo: InstitucionDirectorioTipo
+  verificada: boolean
+  created_at: string
+}
 export type TipoDocumento = 'boleta' | 'factura'
 
 export interface Profile {
@@ -18,6 +36,7 @@ export interface Institucion {
   phone: string | null
   contacto_nombre: string | null
   activa: boolean
+  directorio_id?: string | null
   created_at: string
 }
 

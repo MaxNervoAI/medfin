@@ -3,32 +3,60 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {
-  LayoutDashboard, FileText, Building2, PieChart,
-  LogOut, Menu, Plus, ChevronRight, Calendar as CalendarIcon,
-  User, Calculator,
+  LayoutDashboard, FileText, Building2,
+  LogOut, Menu, ChevronRight, Calendar as CalendarIcon,
+  User, Calculator, Settings,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { Separator } from '@/components/ui/separator'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import MobileNav from './MobileNav'
 
 const navItems = [
-  { href: '/dashboard',     label: 'Inicio',        icon: LayoutDashboard },
-  { href: '/prestaciones',  label: 'Prestaciones', icon: FileText },
-  { href: '/instituciones', label: 'Lugares de trabajo', icon: Building2 },
-  { href: '/calendario',    label: 'Calendario',   icon: CalendarIcon },
-  { href: '/presupuesto',   label: 'Presupuesto',  icon: Calculator },
+  { href: '/dashboard',    label: 'Inicio',        icon: LayoutDashboard },
+  { href: '/prestaciones', label: 'Prestaciones',  icon: FileText },
+  { href: '/calendario',   label: 'Calendario',    icon: CalendarIcon },
+  { href: '/presupuesto',  label: 'Presupuesto',   icon: Calculator },
 ]
+
+const configItems = [
+  { href: '/instituciones', label: 'Lugares y plazos', icon: Building2 },
+  { href: '/perfil',        label: 'Mi Perfil',        icon: User },
+]
+
+function NavLink({ href, label, Icon, active, onClick }: {
+  href: string
+  label: string
+  Icon: React.ElementType
+  active: boolean
+  onClick: () => void
+}) {
+  return (
+    <Link
+      href={href}
+      onClick={onClick}
+      className={cn(
+        'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium',
+        'min-h-[44px] transition-colors duration-150',
+        active
+          ? 'bg-primary text-primary-foreground shadow-sm'
+          : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+      )}
+    >
+      <Icon className="size-4 shrink-0" />
+      <span>{label}</span>
+      {active && <ChevronRight className="size-3.5 ml-auto opacity-60" />}
+    </Link>
+  )
+}
 
 export default function AppShell({ children, nombre }: { children: React.ReactNode; nombre?: string }) {
   const pathname = usePathname()
@@ -49,7 +77,7 @@ export default function AppShell({ children, nombre }: { children: React.ReactNo
   const isActive = (href: string) =>
     pathname === href || (href !== '/dashboard' && pathname.startsWith(href))
 
-  const currentNav = navItems.find(({ href }) => isActive(href))
+  const currentNav = [...navItems, ...configItems].find(({ href }) => isActive(href))
   const pageTitle = currentNav?.label ?? 'Dr Wallet'
 
   return (
@@ -99,24 +127,18 @@ export default function AppShell({ children, nombre }: { children: React.ReactNo
           <p className="eyebrow px-3 pb-2">Navegación</p>
 
           {navItems.map(({ href, label, icon: Icon }) => (
-            <Link
-              key={href}
-              href={href}
-              onClick={() => setSidebarOpen(false)}
-              className={cn(
-                'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium',
-                'min-h-[44px] transition-colors duration-150',
-                isActive(href)
-                  ? 'bg-primary text-primary-foreground shadow-sm'
-                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-              )}
-            >
-              <Icon className="size-4 shrink-0" />
-              <span>{label}</span>
-              {isActive(href) && (
-                <ChevronRight className="size-3.5 ml-auto opacity-60" />
-              )}
-            </Link>
+            <NavLink key={href} href={href} label={label} Icon={Icon} active={isActive(href)} onClick={() => setSidebarOpen(false)} />
+          ))}
+
+          <div className="mt-4 mb-1">
+            <p className="eyebrow px-3 pb-2 flex items-center gap-1.5">
+              <Settings className="size-3" />
+              Configuración
+            </p>
+          </div>
+
+          {configItems.map(({ href, label, icon: Icon }) => (
+            <NavLink key={href} href={href} label={label} Icon={Icon} active={isActive(href)} onClick={() => setSidebarOpen(false)} />
           ))}
         </nav>
 
@@ -138,13 +160,6 @@ export default function AppShell({ children, nombre }: { children: React.ReactNo
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-52">
-              <DropdownMenuItem asChild>
-                <Link href="/perfil" className="cursor-pointer">
-                  <User className="size-4" />
-                  Mi Perfil
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={cerrarSesion}
                 className="text-destructive focus:text-destructive"

@@ -56,11 +56,13 @@ interface SheetContentProps
 const SheetContent = React.forwardRef<
   React.ElementRef<typeof SheetPrimitive.Content>,
   SheetContentProps
->(({ side = "right", className, children, ...props }, ref) => (
+>(({ side = "right", className, children, onInteractOutside, onEscapeKeyDown, ...props }, ref) => (
   <SheetPortal>
     <SheetOverlay />
     <SheetPrimitive.Content
       ref={ref}
+      onInteractOutside={e => { e.preventDefault(); onInteractOutside?.(e) }}
+      onEscapeKeyDown={e => { e.preventDefault(); onEscapeKeyDown?.(e) }}
       className={cn(sheetVariants({ side }), className)}
       {...props}
     >

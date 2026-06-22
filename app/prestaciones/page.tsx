@@ -6,8 +6,8 @@ export default async function PrestacionesPage() {
   const supabase = await createClient()
   
   const [{ data: prestaciones }, { data: instituciones }, { data: reglas }] = await Promise.all([
-    supabase.from('prestaciones').select('*').order('fecha_prestacion', { ascending: false }).limit(100),
-    supabase.from('instituciones').select('id, nombre').eq('activa', true).order('nombre'),
+    supabase.from('prestaciones').select('*, files:prestaciones_files(*)').order('fecha_prestacion', { ascending: false }).limit(100),
+    supabase.from('instituciones').select('id, nombre, directorio_id').eq('activa', true).order('nombre'),
     supabase.from('reglas_plazo').select('*'),
   ])
 

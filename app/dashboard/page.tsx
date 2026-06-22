@@ -32,7 +32,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
   // Fetch instituciones and reglas for the new prestacion form
   const { data: instituciones } = await supabase
     .from('instituciones')
-    .select('id, nombre')
+    .select('id, nombre, directorio_id')
     .eq('activa', true)
     .order('nombre')
 

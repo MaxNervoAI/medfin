@@ -3,12 +3,11 @@
 import type React from 'react'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus, FileText, ArrowLeft, ArrowRight, CheckCircle2, Info } from 'lucide-react'
+import { Plus, FileText, ArrowLeft, ArrowRight, CheckCircle2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { formatFechaCorta, diasHasta, calcularFechaLimiteBoleta, getTaxRate } from '@/lib/utils'
 import type { Prestacion, EstadoPrestacion, Institucion, ReglasPlazo } from '@/types'
 import { cn } from '@/lib/utils'
-import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
@@ -17,13 +16,14 @@ import { Textarea } from '@/components/ui/textarea'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Separator } from '@/components/ui/separator'
 import { Money } from '@/components/ui/Money'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { PageHeader } from '@/components/ui/PageHeader'
 import PrestacionDetalle from './PrestacionDetalle'
+import InstitucionCombobox from '@/components/ui/InstitucionCombobox'
+import TipoPrestacionCombobox from '@/components/ui/TipoPrestacionCombobox'
 import { toast } from 'sonner'
 
 function getEstadoBadge(prestacion: Prestacion) {
@@ -47,7 +47,7 @@ function getEstadoBadge(prestacion: Prestacion) {
 
 interface Props {
   prestaciones: Prestacion[]
-  instituciones: Pick<Institucion, 'id' | 'nombre'>[]
+  instituciones: Pick<Institucion, 'id' | 'nombre' | 'directorio_id'>[]
   reglas: ReglasPlazo[]
 }
 
@@ -65,22 +65,7 @@ function useNuevaForm(instituciones: Props['instituciones'], reglas: Props['regl
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [taxRate, setTaxRate] = useState(0.145)
-  const [userEspecialidades, setUserEspecialidades] = useState<{ id: string; nombre: string }[]>([])
-
-  // Fetch user's specialties
-  useEffect(() => {
-    async function fetchEspecialidades() {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        const { data } = await supabase
-          .from('perfil_especialidades')
-          .select('especialidad_id, especialidades (id, nombre)')
-          .eq('perfil_id', user.id)
-        setUserEspecialidades(data?.map((e: any) => e.especialidades) || [])
-      }
-    }
-    fetchEspecialidades()
-  }, [supabase])
+  const [localInstituciones, setLocalInstituciones] = useState(instituciones)
 
   const [institucionId, setInstitucionId] = useState('')
   const [tipoPrestacion, setTipoPrestacion] = useState('')
@@ -162,7 +147,7 @@ function useNuevaForm(instituciones: Props['instituciones'], reglas: Props['regl
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { setError('No autenticado'); setLoading(false); return }
 
-    const institucion = instituciones.find(i => i.id === institucionId)
+    const institucion = localInstituciones.find(i => i.id === institucionId)
     const { data, error: dbError } = await supabase.from('prestaciones').insert({
       user_id: user.id,
       institucion_id: institucionId,
@@ -185,14 +170,14 @@ function useNuevaForm(instituciones: Props['instituciones'], reglas: Props['regl
     onSuccess(data as Prestacion)
   }
 
-  const institucionNombre = instituciones.find(i => i.id === institucionId)?.nombre ?? ''
+  const institucionNombre = localInstituciones.find(i => i.id === institucionId)?.nombre ?? ''
 
   return {
     step, next, back, canAdvance, reset, submit, loading, error,
+    localInstituciones, setLocalInstituciones,
     institucionId, setInstitucionId,
     tipoPrestacion, setTipoPrestacion,
     tiposDisponibles, reglaAplicable,
-    userEspecialidades,
     esTurno, setEsTurno,
     fecha, setFecha,
     montoBruto, setMontoBruto,
@@ -267,6 +252,11 @@ export default function PrestacionesClient({ prestaciones: init, instituciones, 
     setPrestaciones(prev => prev.filter(p => p.id !== id))
     setSelected(null)
     toast.success('Prestación eliminada')
+  }
+
+  function handleFilesChange(prestacionId: string, files: Prestacion['files']) {
+    setPrestaciones(prev => prev.map(p => p.id === prestacionId ? { ...p, files } : p))
+    setSelected(prev => prev?.id === prestacionId ? { ...prev, files } : prev)
   }
 
   async function editarPrestacion(prestacion: Prestacion, data: Partial<Prestacion>) {
@@ -397,38 +387,45 @@ export default function PrestacionesClient({ prestaciones: init, instituciones, 
 
           <Separator />
 
-          <div className="px-6 py-5 min-h-[220px]">
+          <div className="px-6 py-5 min-h-[220px] max-h-[60vh] overflow-y-auto">
             {/* Step 1: Institución */}
             {form.step === 'institucion' && (
               <div className="flex flex-col gap-4">
                 <div>
                   <p className="text-base font-semibold text-foreground mb-1">¿Dónde fue la prestación?</p>
-                  <p className="text-sm text-muted-foreground">Selecciona la institución</p>
+                  <p className="text-sm text-muted-foreground">Busca o agrega la clínica u hospital</p>
                 </div>
-                {instituciones.length === 0 ? (
-                  <Alert className="border-warning/30 bg-warning/5">
-                    <Info className="size-4 text-warning" />
-                    <AlertDescription className="text-sm">
-                      Primero agrega una institución en <span className="font-semibold">Lugares</span>
-                    </AlertDescription>
-                  </Alert>
-                ) : (
-                  <div className="flex flex-col gap-2">
-                    {instituciones.map(i => (
-                      <button
-                        key={i.id}
-                        type="button"
-                        onClick={() => form.setInstitucionId(i.id)}
-                        className={cn(
-                          'text-left px-4 py-3 rounded-lg border transition-all text-sm font-medium',
-                          form.institucionId === i.id
-                            ? 'bg-primary/10 border-primary text-primary'
-                            : 'bg-card border-border hover:border-primary/40 text-foreground'
-                        )}
-                      >
-                        {i.nombre}
-                      </button>
-                    ))}
+                <InstitucionCombobox
+                  value={form.institucionId || null}
+                  onChange={inst => {
+                    form.setInstitucionId(inst.id)
+                    form.setTipoPrestacion('')
+                    if (!form.localInstituciones.find(i => i.id === inst.id)) {
+                      form.setLocalInstituciones(prev => [...prev, inst])
+                    }
+                  }}
+                  userInstituciones={form.localInstituciones}
+                />
+                {form.localInstituciones.length > 0 && (
+                  <div className="flex flex-col gap-1.5">
+                    <p className="text-xs text-muted-foreground">Tus instituciones:</p>
+                    <div className="flex flex-col gap-1.5">
+                      {form.localInstituciones.map(i => (
+                        <button
+                          key={i.id}
+                          type="button"
+                          onClick={() => { form.setInstitucionId(i.id); form.setTipoPrestacion('') }}
+                          className={cn(
+                            'text-left px-3 py-2 rounded-lg border transition-all text-sm font-medium',
+                            form.institucionId === i.id
+                              ? 'bg-primary/10 border-primary text-primary'
+                              : 'bg-card border-border hover:border-primary/40 text-foreground'
+                          )}
+                        >
+                          {i.nombre}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
@@ -441,73 +438,41 @@ export default function PrestacionesClient({ prestaciones: init, instituciones, 
                   <p className="text-base font-semibold text-foreground mb-1">¿Qué tipo de prestación?</p>
                   <p className="text-sm text-muted-foreground">{form.institucionNombre}</p>
                 </div>
-
-                {/* Dropdown with specialties */}
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="tipo-prestacion">Tipo de prestación</Label>
-                  <Select value={form.tipoPrestacion} onValueChange={form.setTipoPrestacion}>
-                    <SelectTrigger id="tipo-prestacion">
-                      <SelectValue placeholder="Selecciona..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {/* User's specialties */}
-                      {form.userEspecialidades.length > 0 && (
-                        <>
-                          <div className="px-2 py-1.5 text-xs text-muted-foreground font-medium">
-                            Tus especialidades
-                          </div>
-                          {form.userEspecialidades.map(esp => (
-                            <SelectItem key={esp.id} value={esp.nombre}>
-                              {esp.nombre}
-                            </SelectItem>
-                          ))}
-                        </>
-                      )}
-
-                      {/* Institution-specific rules */}
-                      {form.tiposDisponibles.length > 0 && (
-                        <>
-                          <div className="px-2 py-1.5 text-xs text-muted-foreground font-medium">
-                            {form.userEspecialidades.length > 0 ? 'Frecuentes en esta institución' : 'Tipos frecuentes'}
-                          </div>
-                          {form.tiposDisponibles.map(tipo => (
-                            <SelectItem key={tipo} value={tipo}>
-                              {tipo}
-                            </SelectItem>
-                          ))}
-                        </>
-                      )}
-
-                      {/* No options available */}
-                      {form.userEspecialidades.length === 0 && form.tiposDisponibles.length === 0 && (
-                        <div className="px-2 py-3 text-sm text-muted-foreground">
-                          No hay opciones disponibles
-                        </div>
-                      )}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Link to add specialty */}
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-muted-foreground">
-                    {form.userEspecialidades.length === 0 ? 'No tienes especialidades configuradas' : `${form.userEspecialidades.length} especialidad${form.userEspecialidades.length > 1 ? 'es' : ''} configurada${form.userEspecialidades.length > 1 ? 's' : ''}`}
-                  </span>
-                  <Link
-                    href="/perfil"
-                    onClick={() => setShowNueva(false)}
-                    className="text-primary hover:underline flex items-center gap-1"
-                  >
-                    <Plus className="w-3 h-3" />
-                    Agregar especialidad
-                  </Link>
-                </div>
-
+                <TipoPrestacionCombobox
+                  value={form.tipoPrestacion}
+                  onChange={(val, esTurnoVal) => {
+                    form.setTipoPrestacion(val)
+                    if (esTurnoVal !== undefined) form.setEsTurno(esTurnoVal)
+                  }}
+                  placeholder="Buscar: cirugía, consulta, turno…"
+                />
+                {form.tiposDisponibles.length > 0 && (
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-2">Configurados para esta institución:</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {form.tiposDisponibles.map(tipo => (
+                        <button
+                          key={tipo}
+                          type="button"
+                          onClick={() => form.setTipoPrestacion(tipo)}
+                          className={cn(
+                            'px-3 py-1.5 rounded-md text-xs font-medium border transition-colors',
+                            form.tipoPrestacion === tipo
+                              ? 'bg-primary text-primary-foreground border-primary'
+                              : 'bg-background text-muted-foreground border-border hover:border-primary/40'
+                          )}
+                        >
+                          {tipo}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 {form.reglaAplicable && (
                   <Alert className="border-primary/30 bg-primary/5 py-2">
                     <CheckCircle2 className="size-3.5 text-primary" />
                     <AlertDescription className="text-xs text-foreground">
-                      Boleta en {form.reglaAplicable.dias_emitir_boleta}d · Pago en {form.reglaAplicable.dias_recibir_pago}d
+                      Emitir boleta en {form.reglaAplicable.dias_emitir_boleta} días · Recibir pago en {form.reglaAplicable.dias_recibir_pago} días desde la boleta
                     </AlertDescription>
                   </Alert>
                 )}
@@ -611,6 +576,12 @@ export default function PrestacionesClient({ prestaciones: init, instituciones, 
                   <Row label="Fecha" value={form.fecha.split('-').reverse().join('/')} />
                   <Separator />
                   <Row label="Monto bruto" value={<Money value={form.montoBrutoCalculado} size="sm" />} />
+                  {form.tipoDocumento === 'boleta' ? (
+                    <Row label={`Retención ${form.retencionPct.toFixed(1)}%`} value={<Money value={-form.montoRetencion} size="sm" showSign className="text-destructive" />} />
+                  ) : (
+                    <Row label="Retención" value={<span className="text-xs text-muted-foreground">Sin retención (factura)</span>} />
+                  )}
+                  <Separator className="my-0" />
                   <Row label="Neto a recibir" value={<Money value={form.montoNeto} size="sm" className="text-success" />} bold />
                   <Row label="Documento" value={form.tipoDocumento} />
                   {form.fechaLimiteBoleta && (
@@ -687,6 +658,7 @@ export default function PrestacionesClient({ prestaciones: init, instituciones, 
               onPagada={marcarPagada}
               onEliminar={eliminarPrestacion}
               onEditar={editarPrestacion}
+              onFilesChange={handleFilesChange}
             />
           )}
         </SheetContent>

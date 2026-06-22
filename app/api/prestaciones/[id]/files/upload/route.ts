@@ -24,7 +24,7 @@ export async function POST(
     const supabase = await createClient()
     const storageClient = createStorageClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
     const { data: { user } } = await supabase.auth.getUser()
     
@@ -53,6 +53,8 @@ export async function POST(
       'image/gif',
       'text/plain',
       'text/markdown',
+      'text/xml',
+      'application/xml',
       'application/msword',
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     ]

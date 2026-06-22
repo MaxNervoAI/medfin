@@ -4,9 +4,9 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { generarAlertas, getMesActual, calcularFechaLimitePago, getTaxRate, cn } from '@/lib/utils'
-import type { Prestacion, Alerta, Institucion, ReglasPlazo, EstadoPrestacion } from '@/types'
+import type { Prestacion, Alerta, Institucion, ReglasPlazo } from '@/types'
 import { createClient } from '@/lib/supabase/client'
-import { ArrowRight, AlertTriangle, Clock, CheckCircle2, Plus, ArrowLeft, ArrowRight as ArrowRightIcon, Info, Zap } from 'lucide-react'
+import { ArrowRight, AlertTriangle, Clock, CheckCircle2, Plus, ArrowLeft, ArrowRight as ArrowRightIcon, Zap } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -20,15 +20,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { toast } from 'sonner'
 import PagoAnticipadoModal from '@/components/ui/PagoAnticipadoModal'
+import InstitucionCombobox from '@/components/ui/InstitucionCombobox'
+import TipoPrestacionCombobox from '@/components/ui/TipoPrestacionCombobox'
 
 interface Props {
   nombre: string
   prestaciones: Prestacion[]
-  instituciones: Pick<Institucion, 'id' | 'nombre'>[]
+  instituciones: Pick<Institucion, 'id' | 'nombre' | 'directorio_id'>[]
   reglas: ReglasPlazo[]
 }
 
@@ -175,23 +176,6 @@ export default function DashboardClient({ nombre, prestaciones, instituciones, r
   const [showPagoAnticipado, setShowPagoAnticipado] = useState(false)
   const [showEdit, setShowEdit] = useState(false)
   const alertas = generarAlertas(localPrestaciones)
-  const [userEspecialidades, setUserEspecialidades] = useState<{ id: string; nombre: string }[]>([])
-
-  // Fetch user's specialties
-  useEffect(() => {
-    async function fetchEspecialidades() {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        const { data } = await supabase
-          .from('perfil_especialidades')
-          .select('especialidad_id, especialidades (id, nombre)')
-          .eq('perfil_id', user.id)
-        setUserEspecialidades(data?.map((e: any) => e.especialidades) || [])
-      }
-    }
-    fetchEspecialidades()
-  }, [supabase])
-
   // Nueva prestacion form state
   const [step, setStep] = useState<Step>('institucion')
   const [loading, setLoading] = useState(false)
@@ -288,8 +272,6 @@ export default function DashboardClient({ nombre, prestaciones, instituciones, r
       fecha_prestacion: fecha,
       monto_bruto: montoBrutoCalculado,
       retencion_pct: retencionPct,
-      monto_retencion: montoRetencion,
-      monto_neto: montoNeto,
       horas: esTurno ? parseFloat(horas) : null,
       valor_hora: esTurno ? parseFloat(valorHora) : null,
       tipo_documento: tipoDocumento,
@@ -337,6 +319,7 @@ export default function DashboardClient({ nombre, prestaciones, instituciones, r
   const boletaEmitida = localPrestaciones.filter(p => p.estado === 'boleta_emitida').length
 
   const primerNombre = nombre.split(' ')[0]
+  const isZeroState = localPrestaciones.length === 0 && instituciones.length === 0
 
   const institucionNombre = instituciones.find(i => i.id === institucionId)?.nombre ?? ''
   const stepIdx = STEPS.indexOf(step)
@@ -433,44 +416,58 @@ export default function DashboardClient({ nombre, prestaciones, instituciones, r
         title={`Hola, ${primerNombre}`}
         subtitle={alertas.length > 0 ? `${alertas.length} ${alertas.length === 1 ? 'alerta pendiente' : 'alertas pendientes'} este mes` : 'Todo al día · sin alertas pendientes'}
         actions={
-          <Button
-            size="sm"
-            variant="outline"
-            className="gap-1.5 border-primary/40 text-primary hover:bg-primary/10 hover:text-primary hover:border-primary"
-            onClick={() => setShowPagoAnticipado(true)}
-          >
-            <Zap className="size-3.5" />
-            Pago anticipado
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-1.5 border-border text-muted-foreground hover:bg-accent hidden sm:flex"
+              onClick={() => setShowPagoAnticipado(true)}
+            >
+              <Zap className="size-3.5" />
+              Pago anticipado
+            </Button>
+            <Button
+              size="sm"
+              className="gap-1.5"
+              onClick={() => setShowNueva(true)}
+            >
+              <Plus className="size-3.5" />
+              Nueva prestación
+            </Button>
+          </div>
         }
       />
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          eyebrow="Por cobrar"
-          value={<Money value={porCobrar} size="xl" />}
-          sub={`${sinBoleta + boletaEmitida} prestaciones abiertas`}
-        />
-        <StatCard
-          eyebrow="Cobrado este mes"
-          value={<Money value={cobradoMes} size="xl" />}
-          sub="neto recibido"
-          accent="primary"
-        />
-        <StatCard
-          eyebrow="Sin boleta"
-          value={<span className="text-[2.6rem] leading-none tracking-tight text-warning">{sinBoleta}</span>}
-          sub="pendientes de emitir"
-          accent="warning"
-        />
-        <StatCard
-          eyebrow="Boleta emitida"
-          value={<span className="text-[2.6rem] leading-none tracking-tight text-primary">{boletaEmitida}</span>}
-          sub="esperando pago"
-          accent="primary"
-        />
-      </div>
+      {/* Stats or welcome card */}
+      {isZeroState ? (
+        <WelcomeCard onRegister={() => setShowNueva(true)} />
+      ) : (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard
+            eyebrow="Por cobrar"
+            value={<Money value={porCobrar} size="xl" />}
+            sub={`${sinBoleta + boletaEmitida} prestaciones abiertas`}
+          />
+          <StatCard
+            eyebrow="Cobrado este mes"
+            value={<Money value={cobradoMes} size="xl" />}
+            sub="neto recibido"
+            accent="primary"
+          />
+          <StatCard
+            eyebrow="Sin boleta"
+            value={<span className="text-[2.6rem] leading-none tracking-tight text-warning">{sinBoleta}</span>}
+            sub="pendientes de emitir"
+            accent="warning"
+          />
+          <StatCard
+            eyebrow="Boleta emitida"
+            value={<span className="text-[2.6rem] leading-none tracking-tight text-primary">{boletaEmitida}</span>}
+            sub="esperando pago"
+            accent="primary"
+          />
+        </div>
+      )}
 
       {/* Two-col */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
@@ -695,32 +692,40 @@ export default function DashboardClient({ nombre, prestaciones, instituciones, r
               <div className="flex flex-col gap-4">
                 <div>
                   <p className="text-base font-semibold text-foreground mb-1">¿Dónde fue la prestación?</p>
-                  <p className="text-sm text-muted-foreground">Selecciona la institución</p>
+                  <p className="text-sm text-muted-foreground">Busca o agrega la clínica u hospital</p>
                 </div>
-                {instituciones.length === 0 ? (
-                  <Alert className="border-warning/30 bg-warning/5">
-                    <Info className="size-4 text-warning" />
-                    <AlertDescription className="text-sm">
-                      Primero agrega una institución en <span className="font-semibold">Lugares</span>
-                    </AlertDescription>
-                  </Alert>
-                ) : (
-                  <div className="flex flex-col gap-2">
-                    {instituciones.map(i => (
-                      <button
-                        key={i.id}
-                        type="button"
-                        onClick={() => setInstitucionId(i.id)}
-                        className={cn(
-                          'text-left px-4 py-3 rounded-lg border transition-all text-sm font-medium',
-                          institucionId === i.id
-                            ? 'bg-primary/10 border-primary text-primary'
-                            : 'bg-card border-border hover:border-primary/40 text-foreground'
-                        )}
-                      >
-                        {i.nombre}
-                      </button>
-                    ))}
+                <InstitucionCombobox
+                  value={institucionId || null}
+                  onChange={inst => {
+                    setInstitucionId(inst.id)
+                    // Add to local list if new (so downstream steps can find it)
+                    if (!instituciones.find(i => i.id === inst.id)) {
+                      instituciones.push(inst)
+                    }
+                  }}
+                  userInstituciones={instituciones.map(i => ({ id: i.id, nombre: i.nombre, directorio_id: i.directorio_id ?? null }))}
+                />
+                {/* Quick-select existing institutions */}
+                {instituciones.length > 0 && (
+                  <div className="flex flex-col gap-1.5">
+                    <p className="text-xs text-muted-foreground">Tus instituciones:</p>
+                    <div className="flex flex-col gap-1.5">
+                      {instituciones.map(i => (
+                        <button
+                          key={i.id}
+                          type="button"
+                          onClick={() => setInstitucionId(i.id)}
+                          className={cn(
+                            'text-left px-3 py-2 rounded-lg border transition-all text-sm font-medium',
+                            institucionId === i.id
+                              ? 'bg-primary/10 border-primary text-primary'
+                              : 'bg-card border-border hover:border-primary/40 text-foreground'
+                          )}
+                        >
+                          {i.nombre}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
@@ -734,72 +739,43 @@ export default function DashboardClient({ nombre, prestaciones, instituciones, r
                   <p className="text-sm text-muted-foreground">{institucionNombre}</p>
                 </div>
 
-                {/* Dropdown with specialties */}
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="tipo-prestacion">Tipo de prestación</Label>
-                  <Select value={tipoPrestacion} onValueChange={setTipoPrestacion}>
-                    <SelectTrigger id="tipo-prestacion">
-                      <SelectValue placeholder="Selecciona..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {/* User's specialties */}
-                      {userEspecialidades.length > 0 && (
-                        <>
-                          <div className="px-2 py-1.5 text-xs text-muted-foreground font-medium">
-                            Tus especialidades
-                          </div>
-                          {userEspecialidades.map(esp => (
-                            <SelectItem key={esp.id} value={esp.nombre}>
-                              {esp.nombre}
-                            </SelectItem>
-                          ))}
-                        </>
-                      )}
+                <TipoPrestacionCombobox
+                  value={tipoPrestacion}
+                  onChange={(val, esTurnoVal) => {
+                    setTipoPrestacion(val)
+                    if (esTurnoVal !== undefined) setEsTurno(esTurnoVal)
+                  }}
+                  placeholder="Buscar: cirugía, consulta, turno…"
+                />
 
-                      {/* Institution-specific rules */}
-                      {tiposDisponibles.length > 0 && (
-                        <>
-                          <div className="px-2 py-1.5 text-xs text-muted-foreground font-medium">
-                            {userEspecialidades.length > 0 ? 'Frecuentes en esta institución' : 'Tipos frecuentes'}
-                          </div>
-                          {tiposDisponibles.map(tipo => (
-                            <SelectItem key={tipo} value={tipo}>
-                              {tipo}
-                            </SelectItem>
-                          ))}
-                        </>
-                      )}
-
-                      {/* No options available */}
-                      {userEspecialidades.length === 0 && tiposDisponibles.length === 0 && (
-                        <div className="px-2 py-3 text-sm text-muted-foreground">
-                          No hay opciones disponibles
-                        </div>
-                      )}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Link to add specialty */}
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-muted-foreground">
-                    {userEspecialidades.length === 0 ? 'No tienes especialidades configuradas' : `${userEspecialidades.length} especialidad${userEspecialidades.length > 1 ? 'es' : ''} configurada${userEspecialidades.length > 1 ? 's' : ''}`}
-                  </span>
-                  <Link
-                    href="/perfil"
-                    onClick={() => setShowNueva(false)}
-                    className="text-primary hover:underline flex items-center gap-1"
-                  >
-                    <Plus className="w-3 h-3" />
-                    Agregar especialidad
-                  </Link>
-                </div>
+                {tiposDisponibles.length > 0 && (
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-2">Configurados para esta institución:</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {tiposDisponibles.map(tipo => (
+                        <button
+                          key={tipo}
+                          type="button"
+                          onClick={() => setTipoPrestacion(tipo)}
+                          className={cn(
+                            'px-3 py-1.5 rounded-md text-xs font-medium border transition-colors',
+                            tipoPrestacion === tipo
+                              ? 'bg-primary text-primary-foreground border-primary'
+                              : 'bg-background text-muted-foreground border-border hover:border-primary/40'
+                          )}
+                        >
+                          {tipo}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {reglaAplicable && (
                   <Alert className="border-primary/30 bg-primary/5 py-2">
                     <CheckCircle2 className="size-3.5 text-primary" />
                     <AlertDescription className="text-xs text-foreground">
-                      Boleta en {reglaAplicable.dias_emitir_boleta}d · Pago en {reglaAplicable.dias_recibir_pago}d
+                      Emitir boleta en {reglaAplicable.dias_emitir_boleta} días · Recibir pago en {reglaAplicable.dias_recibir_pago} días desde la boleta
                     </AlertDescription>
                   </Alert>
                 )}
@@ -903,6 +879,12 @@ export default function DashboardClient({ nombre, prestaciones, instituciones, r
                   <Row label="Fecha" value={fecha.split('-').reverse().join('/')} />
                   <Separator />
                   <Row label="Monto bruto" value={<Money value={montoBrutoCalculado} size="sm" />} />
+                  {tipoDocumento === 'boleta' ? (
+                    <Row label={`Retención ${retencionPct.toFixed(1)}%`} value={<Money value={-montoRetencion} size="sm" showSign className="text-destructive" />} />
+                  ) : (
+                    <Row label="Retención" value={<span className="text-xs text-muted-foreground">Sin retención (factura)</span>} />
+                  )}
+                  <Separator className="my-0" />
                   <Row label="Neto a recibir" value={<Money value={montoNeto} size="sm" className="text-success" />} bold />
                   <Row label="Documento" value={tipoDocumento} />
                   {fechaLimiteBoleta && (
@@ -998,5 +980,30 @@ function Row({ label, value, bold }: { label: string; value: React.ReactNode; bo
       <span className="text-muted-foreground shrink-0">{label}</span>
       <span className="text-right text-foreground">{value}</span>
     </div>
+  )
+}
+
+function WelcomeCard({ onRegister }: { onRegister: () => void }) {
+  return (
+    <Card className="border-primary/20 bg-primary/5">
+      <CardContent className="py-10 flex flex-col items-center text-center gap-5">
+        <div className="size-14 rounded-2xl bg-primary/10 flex items-center justify-center">
+          <Plus className="size-7 text-primary" />
+        </div>
+        <div className="flex flex-col gap-2">
+          <h2 className="text-xl font-semibold tracking-tight">Bienvenido a Dr Wallet</h2>
+          <p className="text-sm text-muted-foreground max-w-sm">
+            Registra tu primera prestación para empezar a trackear tus honorarios, la retención del 14,5% y tus plazos de cobro.
+          </p>
+        </div>
+        <Button size="lg" onClick={onRegister} className="gap-2">
+          <Plus className="size-4" />
+          Registrar primera prestación
+        </Button>
+        <p className="text-xs text-muted-foreground">
+          Puedes buscar tu clínica directamente — no necesitas configurar nada antes.
+        </p>
+      </CardContent>
+    </Card>
   )
 }

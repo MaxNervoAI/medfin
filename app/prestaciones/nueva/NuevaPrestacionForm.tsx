@@ -10,26 +10,27 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Money } from '@/components/ui/Money'
 import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
-import { ArrowLeft, Info, CheckCircle2, Plus } from 'lucide-react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { ArrowLeft, CheckCircle2 } from 'lucide-react'
+import InstitucionCombobox from '@/components/ui/InstitucionCombobox'
+import TipoPrestacionCombobox from '@/components/ui/TipoPrestacionCombobox'
 
 interface Props {
-  instituciones: Pick<Institucion, 'id' | 'nombre'>[]
+  instituciones: Pick<Institucion, 'id' | 'nombre' | 'directorio_id'>[]
   reglas: ReglasPlazo[]
 }
 
-export default function NuevaPrestacionForm({ instituciones, reglas }: Props) {
+export default function NuevaPrestacionForm({ instituciones: initialInstituciones, reglas }: Props) {
   const router = useRouter()
   const supabase = createClient()
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [taxRate, setTaxRate] = useState<number>(0.145)
+  const [instituciones, setInstituciones] = useState(initialInstituciones)
 
   // Fetch dynamic tax rate on mount
   useEffect(() => {
@@ -56,20 +57,6 @@ export default function NuevaPrestacionForm({ instituciones, reglas }: Props) {
 
   // Regla aplicable
   const [reglaAplicable, setReglaAplicable] = useState<ReglasPlazo | null>(null)
-
-  // Estado para el diálogo de nuevo tipo de prestación
-  const [showNewTipoDialog, setShowNewTipoDialog] = useState(false)
-  const [newTipoNombre, setNewTipoNombre] = useState('')
-  const [newTipoEsTurno, setNewTipoEsTurno] = useState(false)
-  const [loadingNewTipo, setLoadingNewTipo] = useState(false)
-  const [errorNewTipo, setErrorNewTipo] = useState('')
-
-  // Estado para el diálogo de nueva institución
-  const [showNewInstitucionDialog, setShowNewInstitucionDialog] = useState(false)
-  const [newInstitucionNombre, setNewInstitucionNombre] = useState('')
-  const [newInstitucionRut, setNewInstitucionRut] = useState('')
-  const [loadingNewInstitucion, setLoadingNewInstitucion] = useState(false)
-  const [errorNewInstitucion, setErrorNewInstitucion] = useState('')
 
   // Tipos de prestación disponibles para la institución seleccionada
   const tiposDisponibles = reglas
@@ -100,122 +87,6 @@ export default function NuevaPrestacionForm({ instituciones, reglas }: Props) {
     ? calcularFechaLimiteBoleta(fechaPrestacion, reglaAplicable.dias_emitir_boleta)
     : null
 
-  // Función para crear nuevo tipo de prestación
-  async function handleCreateNewTipo() {
-    if (!newTipoNombre.trim()) {
-      setErrorNewTipo('Ingresa un nombre para el tipo de prestación')
-      return
-    }
-    if (!institucionId) {
-      setErrorNewTipo('Selecciona primero una institución')
-      return
-    }
-
-    setLoadingNewTipo(true)
-    setErrorNewTipo('')
-
-    try {
-      // Obtener usuario autenticado
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        setErrorNewTipo('No autenticado')
-        setLoadingNewTipo(false)
-        return
-      }
-
-      // Crear nuevo tipo de prestación
-      const { error: tipoError } = await supabase.from('tipos_prestacion').insert({
-        user_id: user.id,
-        nombre: newTipoNombre.trim(),
-        es_turno: newTipoEsTurno
-      })
-
-      if (tipoError) {
-        setErrorNewTipo(`Error: ${tipoError.message}`)
-        setLoadingNewTipo(false)
-        return
-      }
-
-      // Crear regla de plazo para este tipo en la institución seleccionada
-      const { error: reglaError } = await supabase.from('reglas_plazo').insert({
-        user_id: user.id,
-        institucion_id: institucionId,
-        tipo_prestacion_nombre: newTipoNombre.trim(),
-        dias_emitir_boleta: 5,
-        dias_recibir_pago: 30
-      })
-
-      if (reglaError) {
-        setErrorNewTipo(`Error al crear regla: ${reglaError.message}`)
-        setLoadingNewTipo(false)
-        return
-      }
-
-      // Éxito: limpiar formulario y cerrar diálogo
-      setNewTipoNombre('')
-      setNewTipoEsTurno(false)
-      setShowNewTipoDialog(false)
-      
-      // Recargar la página para mostrar el nuevo tipo
-      router.refresh()
-      
-    } catch (error) {
-      console.error('Error creating new tipo:', error)
-      setErrorNewTipo('Error inesperado')
-    } finally {
-      setLoadingNewTipo(false)
-    }
-  }
-
-  // Función para crear nueva institución
-  async function handleCreateNewInstitucion() {
-    if (!newInstitucionNombre.trim()) {
-      setErrorNewInstitucion('Ingresa un nombre para la institución')
-      return
-    }
-
-    setLoadingNewInstitucion(true)
-    setErrorNewInstitucion('')
-
-    try {
-      // Obtener usuario autenticado
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        setErrorNewInstitucion('No autenticado')
-        setLoadingNewInstitucion(false)
-        return
-      }
-
-      // Crear nueva institución
-      const { error: institucionError } = await supabase.from('instituciones').insert({
-        user_id: user.id,
-        nombre: newInstitucionNombre.trim(),
-        rut: newInstitucionRut.trim() || null,
-        activa: true
-      })
-
-      if (institucionError) {
-        setErrorNewInstitucion(`Error: ${institucionError.message}`)
-        setLoadingNewInstitucion(false)
-        return
-      }
-
-      // Éxito: limpiar formulario y cerrar diálogo
-      setNewInstitucionNombre('')
-      setNewInstitucionRut('')
-      setShowNewInstitucionDialog(false)
-      
-      // Recargar la página para mostrar la nueva institución
-      router.refresh()
-      
-    } catch (error) {
-      console.error('Error creating new institucion:', error)
-      setErrorNewInstitucion('Error inesperado')
-    } finally {
-      setLoadingNewInstitucion(false)
-    }
-  }
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!institucionId) { setError('Selecciona una institución'); return }
@@ -244,8 +115,6 @@ export default function NuevaPrestacionForm({ instituciones, reglas }: Props) {
       fecha_prestacion: fechaPrestacion,
       monto_bruto: montoBrutoCalculado,
       retencion_pct: retencionPct,
-      monto_retencion: montoRetencion,
-      monto_neto: montoNeto,
       horas: esTurno ? parseFloat(horas) : null,
       valor_hora: esTurno ? parseFloat(valorHora) : null,
       tipo_documento: tipoDocumento,
@@ -316,90 +185,18 @@ export default function NuevaPrestacionForm({ instituciones, reglas }: Props) {
           </CardHeader>
           <CardContent className="flex flex-col gap-3">
             <div className="flex flex-col gap-1.5">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="institucion">Institución</Label>
-                <Dialog open={showNewInstitucionDialog} onOpenChange={setShowNewInstitucionDialog}>
-                  <DialogTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="h-7 px-2 text-xs"
-                    >
-                      <Plus className="w-3 h-3 mr-1" />
-                      Nueva
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-md">
-                    <DialogHeader>
-                      <DialogTitle className="text-lg">Crear nueva institución</DialogTitle>
-                    </DialogHeader>
-                    <div className="flex flex-col gap-4">
-                      <div className="flex flex-col gap-1.5">
-                        <Label htmlFor="new-institucion-nombre">Nombre</Label>
-                        <Input
-                          id="new-institucion-nombre"
-                          placeholder="Ej: Clínica San José"
-                          value={newInstitucionNombre}
-                          onChange={e => setNewInstitucionNombre(e.target.value)}
-                        />
-                      </div>
-                      <div className="flex flex-col gap-1.5">
-                        <Label htmlFor="new-institucion-rut">RUT (opcional)</Label>
-                        <Input
-                          id="new-institucion-rut"
-                          placeholder="Ej: 76.123.456-7"
-                          value={newInstitucionRut}
-                          onChange={e => setNewInstitucionRut(e.target.value)}
-                        />
-                      </div>
-                      {errorNewInstitucion && (
-                        <Alert variant="destructive">
-                          <AlertDescription className="text-xs">{errorNewInstitucion}</AlertDescription>
-                        </Alert>
-                      )}
-                      <div className="flex gap-2 pt-2">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => {
-                            setShowNewInstitucionDialog(false)
-                            setNewInstitucionNombre('')
-                            setNewInstitucionRut('')
-                            setErrorNewInstitucion('')
-                          }}
-                          className="flex-1"
-                        >
-                          Cancelar
-                        </Button>
-                        <Button
-                          type="button"
-                          onClick={handleCreateNewInstitucion}
-                          disabled={loadingNewInstitucion || !newInstitucionNombre.trim()}
-                          className="flex-1"
-                        >
-                          {loadingNewInstitucion ? 'Creando…' : 'Crear'}
-                        </Button>
-                      </div>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </div>
-              <Select value={institucionId} onValueChange={v => { setInstitucionId(v); setTipoPrestacion('') }}>
-                <SelectTrigger id="institucion">
-                  <SelectValue placeholder="Selecciona una institución" />
-                </SelectTrigger>
-                <SelectContent>
-                  {instituciones.map(i => (
-                    <SelectItem key={i.id} value={i.id}>{i.nombre}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {instituciones.length === 0 && (
-                <p className="text-xs text-warning flex items-center gap-1.5 mt-1">
-                  <Info className="size-3" /> Crea tu primera institución con el botón "Nueva"
-                </p>
-              )}
+              <Label>Institución</Label>
+              <InstitucionCombobox
+                value={institucionId || null}
+                onChange={inst => {
+                  setInstitucionId(inst.id)
+                  setTipoPrestacion('')
+                  if (!instituciones.find(i => i.id === inst.id)) {
+                    setInstituciones(prev => [...prev, { ...inst, directorio_id: inst.directorio_id ?? null }])
+                  }
+                }}
+                userInstituciones={instituciones}
+              />
             </div>
           </CardContent>
         </Card>
@@ -410,6 +207,14 @@ export default function NuevaPrestacionForm({ instituciones, reglas }: Props) {
             <CardTitle className="text-sm font-semibold">Tipo de prestación</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-3">
+            <TipoPrestacionCombobox
+              value={tipoPrestacion}
+              onChange={(val, esTurnoVal) => {
+                setTipoPrestacion(val)
+                if (esTurnoVal !== undefined) setEsTurno(esTurnoVal)
+              }}
+              placeholder="Buscar: cirugía, consulta, turno…"
+            />
             {tiposDisponibles.length > 0 && (
               <div>
                 <p className="text-xs text-muted-foreground mb-2">Configurados para esta institución:</p>
@@ -430,102 +235,14 @@ export default function NuevaPrestacionForm({ instituciones, reglas }: Props) {
                     </button>
                   ))}
                 </div>
-                <p className="text-xs text-muted-foreground mt-2">O escribe uno nuevo:</p>
               </div>
             )}
-            <div className="flex flex-col gap-1.5">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="tipo-prestacion">Tipo de prestación</Label>
-                <Dialog open={showNewTipoDialog} onOpenChange={setShowNewTipoDialog}>
-                  <DialogTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="h-7 px-2 text-xs"
-                      disabled={!institucionId}
-                    >
-                      <Plus className="w-3 h-3 mr-1" />
-                      Nuevo tipo
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-md">
-                    <DialogHeader>
-                      <DialogTitle className="text-lg">Crear nuevo tipo de prestación</DialogTitle>
-                    </DialogHeader>
-                    <div className="flex flex-col gap-4">
-                      <div className="flex flex-col gap-1.5">
-                        <Label htmlFor="new-tipo-nombre">Nombre</Label>
-                        <Input
-                          id="new-tipo-nombre"
-                          placeholder="Ej: Consulta, Cirugía, Turno..."
-                          value={newTipoNombre}
-                          onChange={e => setNewTipoNombre(e.target.value)}
-                        />
-                      </div>
-                      <div className="flex items-center gap-3 py-1">
-                        <button
-                          type="button"
-                          onClick={() => setNewTipoEsTurno(!newTipoEsTurno)}
-                          className={cn(
-                            'relative w-10 h-5 rounded-full transition-colors shrink-0',
-                            newTipoEsTurno ? 'bg-primary' : 'bg-muted-foreground/30'
-                          )}
-                          role="switch"
-                          aria-checked={newTipoEsTurno}
-                        >
-                          <span className={cn(
-                            'absolute top-0.5 left-0.5 size-4 bg-white rounded-full shadow transition-transform',
-                            newTipoEsTurno && 'translate-x-5'
-                          )} />
-                        </button>
-                        <span className="text-sm text-foreground">Es turno (pago por horas)</span>
-                      </div>
-                      {errorNewTipo && (
-                        <Alert variant="destructive">
-                          <AlertDescription className="text-xs">{errorNewTipo}</AlertDescription>
-                        </Alert>
-                      )}
-                      <div className="flex gap-2 pt-2">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => {
-                            setShowNewTipoDialog(false)
-                            setNewTipoNombre('')
-                            setNewTipoEsTurno(false)
-                            setErrorNewTipo('')
-                          }}
-                          className="flex-1"
-                        >
-                          Cancelar
-                        </Button>
-                        <Button
-                          type="button"
-                          onClick={handleCreateNewTipo}
-                          disabled={loadingNewTipo || !newTipoNombre.trim()}
-                          className="flex-1"
-                        >
-                          {loadingNewTipo ? 'Creando…' : 'Crear tipo'}
-                        </Button>
-                      </div>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </div>
-              <Input
-                id="tipo-prestacion"
-                placeholder="Cirugía, Endoscopia, Turno, Consulta..."
-                value={tipoPrestacion}
-                onChange={e => setTipoPrestacion(e.target.value)}
-              />
-            </div>
             {reglaAplicable && (
               <Alert className="border-primary/30 bg-primary/5">
                 <CheckCircle2 className="size-4 text-primary" />
                 <AlertDescription className="text-xs text-foreground">
                   <span className="font-semibold">{reglaAplicable.tipo_prestacion_nombre}:</span>{' '}
-                  Boleta en {reglaAplicable.dias_emitir_boleta}d · Cobro en {reglaAplicable.dias_recibir_pago}d
+                  Emitir boleta en {reglaAplicable.dias_emitir_boleta} días · Recibir pago en {reglaAplicable.dias_recibir_pago} días desde la boleta
                   {fechaLimiteBoleta && (
                     <span className="block font-semibold mt-0.5">
                       Límite boleta: {fechaLimiteBoleta.split('-').reverse().join('/')}

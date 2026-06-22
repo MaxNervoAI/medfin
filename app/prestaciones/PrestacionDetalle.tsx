@@ -19,7 +19,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
-import { CheckCircle2, Trash2, Edit, Receipt, Paperclip, Upload } from 'lucide-react'
+import { CheckCircle2, Trash2, Edit, Receipt, Paperclip, Upload, Download, Eye, X, FileText, File } from 'lucide-react'
+import { Dialog, DialogContent } from '@/components/ui/dialog'
 
 interface Props {
   prestacion: Prestacion
@@ -28,14 +29,21 @@ interface Props {
   onPagada: (p: Prestacion, fecha: string) => Promise<void>
   onEliminar: (id: string) => Promise<void>
   onEditar?: (p: Prestacion, data: Partial<Prestacion>) => Promise<void>
+  onFilesChange?: (prestacionId: string, files: Prestacion['files']) => void
 }
 
-export default function PrestacionDetalle({ prestacion: p, onBoletaEmitida, onPagada, onEliminar, onEditar }: Props) {
+export default function PrestacionDetalle({ prestacion: p, onBoletaEmitida, onPagada, onEliminar, onEditar, onFilesChange }: Props) {
   const [loading, setLoading] = useState(false)
   const [fechaAccion, setFechaAccion] = useState(new Date().toISOString().split('T')[0])
   const [files, setFiles] = useState(p.files || [])
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
+  const [confirmingAction, setConfirmingAction] = useState<'boleta' | 'pago' | null>(null)
+  const [textPreviews, setTextPreviews] = useState<Record<string, string>>({})
+  const [expandedText, setExpandedText] = useState<Record<string, boolean>>({})
+  const [imageUrls, setImageUrls] = useState<Record<string, string>>({})
+  const [loadingPreview, setLoadingPreview] = useState<string | null>(null)
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null)
   const [isEditing, setIsEditing] = useState(false)
   const [editData, setEditData] = useState({
     tipo_prestacion: p.tipo_prestacion,
@@ -50,16 +58,43 @@ export default function PrestacionDetalle({ prestacion: p, onBoletaEmitida, onPa
   const montoRetencion = isNaN(p.monto_retencion) ? Math.round(p.monto_bruto * retencionPct / 100) : p.monto_retencion
   const montoNeto = isNaN(p.monto_neto) ? Math.round(p.monto_bruto * (1 - retencionPct / 100)) : p.monto_neto
 
+  async function uploadCurrentFile() {
+    if (!selectedFile) return
+    setUploading(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', selectedFile)
+      const response = await fetch(`/api/prestaciones/${p.id}/files/upload`, { method: 'POST', body: formData })
+      if (!response.ok) throw new Error((await response.json()).error || 'Error al subir archivo')
+      const result = await response.json()
+      if (result.file) {
+        const newFiles = [...files, result.file]
+        setFiles(newFiles)
+        onFilesChange?.(p.id, newFiles)
+      }
+      setSelectedFile(null)
+    } catch (error) {
+      console.error('Upload error:', error)
+      alert(error instanceof Error ? error.message : 'Error al subir archivo')
+    } finally {
+      setUploading(false)
+    }
+  }
+
   async function handleBoletaEmitida() {
     setLoading(true)
+    if (selectedFile) await uploadCurrentFile()
     await onBoletaEmitida(p, fechaAccion)
     setLoading(false)
+    setConfirmingAction(null)
   }
 
   async function handlePagada() {
     setLoading(true)
+    if (selectedFile) await uploadCurrentFile()
     await onPagada(p, fechaAccion)
     setLoading(false)
+    setConfirmingAction(null)
   }
 
   async function handleEliminar() {
@@ -82,37 +117,86 @@ export default function PrestacionDetalle({ prestacion: p, onBoletaEmitida, onPa
   }
 
   async function handleUpload() {
-    if (!selectedFile) return
-    
-    setUploading(true)
+    await uploadCurrentFile()
+  }
+
+  async function loadPreview(file: { id: string; file_type: string }) {
+    if (loadingPreview === file.id) return
+    setLoadingPreview(file.id)
     try {
-      const formData = new FormData()
-      formData.append('file', selectedFile)
-
-      const response = await fetch(`/api/prestaciones/${p.id}/files/upload`, {
-        method: 'POST',
-        body: formData,
-      })
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Error al subir archivo')
+      const res = await fetch(`/api/prestaciones/${p.id}/files/${file.id}/download`)
+      if (!res.ok) return
+      const blob = await res.blob()
+      if (file.file_type.startsWith('image/')) {
+        const url = URL.createObjectURL(blob)
+        setImageUrls(prev => ({ ...prev, [file.id]: url }))
+      } else {
+        const text = await blob.text()
+        setTextPreviews(prev => ({ ...prev, [file.id]: text }))
+        setExpandedText(prev => ({ ...prev, [file.id]: true }))
       }
-
-      const result = await response.json()
-      
-      // Add the new file to the files list
-      if (result.file) {
-        setFiles([...files, result.file])
-      }
-      
-      setSelectedFile(null)
-    } catch (error) {
-      console.error('Upload error:', error)
-      alert(error instanceof Error ? error.message : 'Error al subir archivo')
     } finally {
-      setUploading(false)
+      setLoadingPreview(null)
     }
+  }
+
+  function renderMarkdown(text: string) {
+    const lines = text.split('\n')
+    const elements: React.ReactNode[] = []
+    let i = 0
+    while (i < lines.length) {
+      const line = lines[i]
+      if (line.startsWith('### ')) {
+        elements.push(<h3 key={i} className="text-sm font-semibold mt-3 mb-1">{line.slice(4)}</h3>)
+      } else if (line.startsWith('## ')) {
+        elements.push(<h2 key={i} className="text-base font-semibold mt-4 mb-1">{line.slice(3)}</h2>)
+      } else if (line.startsWith('# ')) {
+        elements.push(<h1 key={i} className="text-lg font-bold mt-4 mb-1">{line.slice(2)}</h1>)
+      } else if (line.startsWith('```')) {
+        const codeLines: string[] = []
+        i++
+        while (i < lines.length && !lines[i].startsWith('```')) { codeLines.push(lines[i]); i++ }
+        elements.push(<pre key={i} className="bg-muted rounded p-2 text-xs overflow-x-auto my-2 font-mono">{codeLines.join('\n')}</pre>)
+      } else if (line.startsWith('- ') || line.startsWith('* ')) {
+        const items: string[] = []
+        while (i < lines.length && (lines[i].startsWith('- ') || lines[i].startsWith('* '))) {
+          items.push(lines[i].slice(2)); i++
+        }
+        elements.push(<ul key={i} className="list-disc list-inside text-xs space-y-0.5 my-1">{items.map((item, j) => <li key={j}>{inlineFormat(item)}</li>)}</ul>)
+        continue
+      } else if (/^\d+\. /.test(line)) {
+        const items: string[] = []
+        while (i < lines.length && /^\d+\. /.test(lines[i])) {
+          items.push(lines[i].replace(/^\d+\. /, '')); i++
+        }
+        elements.push(<ol key={i} className="list-decimal list-inside text-xs space-y-0.5 my-1">{items.map((item, j) => <li key={j}>{inlineFormat(item)}</li>)}</ol>)
+        continue
+      } else if (line.startsWith('---') || line.startsWith('===')) {
+        elements.push(<hr key={i} className="border-border my-2" />)
+      } else if (line.trim() === '') {
+        elements.push(<div key={i} className="h-2" />)
+      } else {
+        elements.push(<p key={i} className="text-xs leading-relaxed">{inlineFormat(line)}</p>)
+      }
+      i++
+    }
+    return elements
+  }
+
+  function inlineFormat(text: string): React.ReactNode {
+    const parts = text.split(/(\*\*.*?\*\*|`.*?`|\*.*?\*)/)
+    return parts.map((part, i) => {
+      if (part.startsWith('**') && part.endsWith('**')) return <strong key={i}>{part.slice(2, -2)}</strong>
+      if (part.startsWith('`') && part.endsWith('`')) return <code key={i} className="bg-muted rounded px-1 font-mono text-[11px]">{part.slice(1, -1)}</code>
+      if (part.startsWith('*') && part.endsWith('*')) return <em key={i}>{part.slice(1, -1)}</em>
+      return part
+    })
+  }
+
+  function fileIcon(type: string) {
+    if (type.startsWith('image/')) return <div className="size-8 rounded bg-blue-500/10 flex items-center justify-center shrink-0"><Eye className="size-4 text-blue-500" /></div>
+    if (type === 'application/pdf') return <div className="size-8 rounded bg-destructive/10 flex items-center justify-center shrink-0"><File className="size-4 text-destructive" /></div>
+    return <div className="size-8 rounded bg-muted flex items-center justify-center shrink-0"><FileText className="size-4 text-muted-foreground" /></div>
   }
 
   function InfoRow({ label, value, accent }: { label: string; value: React.ReactNode; accent?: string }) {
@@ -231,101 +315,186 @@ export default function PrestacionDetalle({ prestacion: p, onBoletaEmitida, onPa
       {/* Archivos adjuntos */}
       {files.length > 0 && (
         <div className="mb-5">
-          <p className="text-xs font-medium text-muted-foreground mb-2">Archivos adjuntos</p>
+          <p className="text-xs font-medium text-muted-foreground mb-2">Archivos adjuntos · {files.length}</p>
           <div className="flex flex-col gap-2">
-            {files.map(file => (
-              isJsonDbMode ? (
-                <div
-                  key={file.id}
-                  className="flex items-center gap-2 text-sm text-foreground p-2 rounded-lg bg-muted/40"
-                >
-                  <span className="flex-1 truncate">{file.filename}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {(file.file_size / 1024).toFixed(1)} KB
-                  </span>
-                  <span className="text-xs text-warning">(demo - no disponible)</span>
+            {files.map(file => {
+              const isImage = file.file_type.startsWith('image/')
+              const isText = file.file_type.startsWith('text/') || file.file_type === 'application/xml'
+              const imgUrl = imageUrls[file.id]
+              const textContent = textPreviews[file.id]
+              const isExpanded = expandedText[file.id]
+              const isLoading = loadingPreview === file.id
+
+              return (
+                <div key={file.id} className="rounded-lg border border-border/60 overflow-hidden">
+                  {/* Image thumbnail */}
+                  {isImage && imgUrl && (
+                    <button
+                      type="button"
+                      className="w-full block"
+                      onClick={() => setLightboxUrl(imgUrl)}
+                    >
+                      <img
+                        src={imgUrl}
+                        alt={file.filename}
+                        className="w-full max-h-48 object-cover hover:opacity-90 transition-opacity"
+                      />
+                    </button>
+                  )}
+
+                  {/* File row */}
+                  <div className="flex items-center gap-2 px-3 py-2.5 bg-muted/30">
+                    {fileIcon(file.file_type)}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium truncate">{file.filename}</p>
+                      <p className="text-[10px] text-muted-foreground">{(file.file_size / 1024).toFixed(1)} KB</p>
+                    </div>
+                    {!isJsonDbMode && (isImage || isText) && !imgUrl && !textContent && (
+                      <button
+                        type="button"
+                        onClick={() => loadPreview(file)}
+                        disabled={isLoading}
+                        className="flex items-center gap-1 text-[11px] text-primary hover:underline disabled:opacity-50"
+                      >
+                        <Eye className="size-3" />
+                        {isLoading ? 'Cargando…' : 'Ver'}
+                      </button>
+                    )}
+                    {isImage && imgUrl && (
+                      <button
+                        type="button"
+                        onClick={() => setLightboxUrl(imgUrl)}
+                        className="flex items-center gap-1 text-[11px] text-primary hover:underline"
+                      >
+                        <Eye className="size-3" /> Ampliar
+                      </button>
+                    )}
+                    {isText && textContent && (
+                      <button
+                        type="button"
+                        onClick={() => setExpandedText(prev => ({ ...prev, [file.id]: !isExpanded }))}
+                        className="flex items-center gap-1 text-[11px] text-primary hover:underline"
+                      >
+                        <Eye className="size-3" /> {isExpanded ? 'Ocultar' : 'Ver'}
+                      </button>
+                    )}
+                    {!isJsonDbMode && (
+                      <a
+                        href={`/api/prestaciones/${p.id}/files/${file.id}/download`}
+                        download={file.filename}
+                        className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground"
+                      >
+                        <Download className="size-3" />
+                      </a>
+                    )}
+                  </div>
+
+                  {/* Text/markdown preview */}
+                  {isText && isExpanded && textContent && (
+                    <div className="px-3 py-3 border-t border-border/40 bg-background max-h-64 overflow-y-auto">
+                      {file.filename.endsWith('.md')
+                        ? <div className="text-foreground">{renderMarkdown(textContent)}</div>
+                        : <pre className="text-xs text-foreground whitespace-pre-wrap font-mono leading-relaxed">{textContent}</pre>
+                      }
+                    </div>
+                  )}
                 </div>
-              ) : (
-                <a
-                  key={file.id}
-                  href={`/api/prestaciones/${p.id}/files/${file.id}/download`}
-                  download={file.filename}
-                  className="flex items-center gap-2 text-sm text-foreground hover:text-primary transition-colors p-2 rounded-lg bg-muted/40 hover:bg-muted/60"
-                >
-                  <span className="flex-1 truncate">{file.filename}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {(file.file_size / 1024).toFixed(1)} KB
-                  </span>
-                </a>
               )
-            ))}
+            })}
           </div>
         </div>
       )}
 
+      {/* Image lightbox */}
+      <Dialog open={!!lightboxUrl} onOpenChange={open => !open && setLightboxUrl(null)}>
+        <DialogContent className="max-w-3xl p-2 bg-black/90 border-0">
+          {lightboxUrl && (
+            <img src={lightboxUrl} alt="Preview" className="w-full h-auto max-h-[80vh] object-contain rounded" />
+          )}
+        </DialogContent>
+      </Dialog>
+
       {/* Actions */}
       {p.estado !== 'pagada' && (
         <div className="flex flex-col gap-3 mb-4">
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-medium text-muted-foreground" htmlFor="fecha-accion">
-              Fecha de la acción
-            </label>
-            <input
-              id="fecha-accion"
-              type="date"
-              value={fechaAccion}
-              onChange={e => setFechaAccion(e.target.value)}
-              className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-            />
-          </div>
-
-          {p.estado === 'realizada' && (
+          {/* Trigger buttons */}
+          {!confirmingAction && (
             <>
-              <Button onClick={handleBoletaEmitida} disabled={loading} className="w-full gap-2">
-                <Receipt className="size-4" />
-                {loading ? 'Guardando…' : 'Marcar boleta como emitida'}
-              </Button>
-              
-              {/* File upload for boleta/factura */}
-              <div className="flex flex-col gap-1.5">
-                <input
-                  id="detalle-archivo"
-                  type="file"
-                  accept="image/*,.pdf,.doc,.docx"
-                  onChange={e => setSelectedFile(e.target.files?.[0] || null)}
-                  className="sr-only"
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => document.getElementById('detalle-archivo')?.click()}
-                  disabled={loading}
-                  className="w-full gap-2"
-                >
-                  <Paperclip className="size-4" />
-                  {selectedFile ? selectedFile.name : 'Adjuntar archivo o foto'}
+              {p.estado === 'realizada' && (
+                <Button onClick={() => { setSelectedFile(null); setConfirmingAction('boleta') }} className="w-full gap-2">
+                  <Receipt className="size-4" />
+                  Marcar boleta como emitida
                 </Button>
-                {selectedFile && (
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    onClick={handleUpload}
-                    disabled={uploading}
-                    className="w-full gap-2"
-                  >
-                    <Upload className="size-4" />
-                    {uploading ? 'Subiendo...' : 'Subir archivo'}
-                  </Button>
-                )}
-              </div>
+              )}
+              {p.estado === 'boleta_emitida' && (
+                <Button onClick={() => { setSelectedFile(null); setConfirmingAction('pago') }} className="w-full gap-2">
+                  <CheckCircle2 className="size-4" />
+                  Marcar como pagada
+                </Button>
+              )}
             </>
           )}
 
-          {p.estado === 'boleta_emitida' && (
-            <Button onClick={handlePagada} disabled={loading} className="w-full gap-2">
-              <CheckCircle2 className="size-4" />
-              {loading ? 'Guardando…' : 'Marcar como pagada'}
-            </Button>
+          {/* Inline confirmation panel */}
+          {confirmingAction && (
+            <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 flex flex-col gap-3">
+              <p className="text-sm font-semibold text-foreground">
+                {confirmingAction === 'boleta' ? 'Confirmar boleta emitida' : 'Confirmar pago recibido'}
+              </p>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-medium text-muted-foreground">
+                  {confirmingAction === 'boleta' ? 'Fecha de emisión' : 'Fecha de pago'}
+                </label>
+                <input
+                  type="date"
+                  value={fechaAccion}
+                  onChange={e => setFechaAccion(e.target.value)}
+                  className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-medium text-muted-foreground">
+                  {confirmingAction === 'boleta' ? 'Adjuntar boleta (opcional)' : 'Adjuntar comprobante (opcional)'}
+                </label>
+                <input
+                  id="action-file-input"
+                  type="file"
+                  accept="image/*,.pdf,.doc,.docx,.txt,.md"
+                  onChange={e => setSelectedFile(e.target.files?.[0] || null)}
+                  className="sr-only"
+                />
+                <button
+                  type="button"
+                  onClick={() => document.getElementById('action-file-input')?.click()}
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-md border border-dashed border-border bg-background text-sm text-muted-foreground hover:border-primary/40 hover:text-foreground transition-colors"
+                >
+                  <Paperclip className="size-4 shrink-0" />
+                  <span className="truncate">{selectedFile ? selectedFile.name : 'Seleccionar archivo…'}</span>
+                </button>
+              </div>
+
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => { setConfirmingAction(null); setSelectedFile(null) }}
+                  disabled={loading || uploading}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  size="sm"
+                  className="flex-1 gap-1.5"
+                  onClick={confirmingAction === 'boleta' ? handleBoletaEmitida : handlePagada}
+                  disabled={loading || uploading}
+                >
+                  {loading || uploading ? 'Guardando…' : 'Confirmar'}
+                </Button>
+              </div>
+            </div>
           )}
         </div>
       )}
