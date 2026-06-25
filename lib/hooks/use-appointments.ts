@@ -1,14 +1,16 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { 
-  getAppointmentsInRange, 
-  getAllAppointments, 
-  createAppointment, 
-  updateAppointment, 
+import { createClient } from '@/lib/supabase/client';
+import {
+  getAppointmentsInRange,
+  getAllAppointments,
+  createAppointment,
+  updateAppointment,
   deleteAppointment,
-  type Appointment 
+  type Appointment
 } from '@/lib/supabase/queries/appointments';
+import type { Prestacion } from '@/types';
 
 const APPOINTMENTS_QUERY_KEY = ['appointments'];
 
@@ -67,6 +69,25 @@ export function useUpdateAppointment() {
     onError: (error) => {
       console.error('Failed to update appointment:', error);
     },
+  });
+}
+
+/**
+ * Hook to fetch all prestaciones for the current user (used by the calendar)
+ */
+export function usePrestaciones() {
+  return useQuery<Prestacion[]>({
+    queryKey: ['prestaciones'],
+    queryFn: async () => {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from('prestaciones')
+        .select('*')
+        .order('fecha_prestacion', { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+    staleTime: 5 * 60 * 1000,
   });
 }
 

@@ -24,7 +24,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import { useAppointments, useUpdateAppointment, useDeleteAppointment, useCreateAppointment } from '@/lib/hooks/use-appointments';
+import { useAppointments, useUpdateAppointment, useDeleteAppointment, useCreateAppointment, usePrestaciones } from '@/lib/hooks/use-appointments';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { AppointmentModal } from '@/components/calendar/AppointmentModal';
@@ -57,6 +57,7 @@ function CalendarContent() {
 
   // Fetch real appointments data
   const { data: appointments, isLoading, error, refetch } = useAppointments();
+  const { data: prestaciones } = usePrestaciones();
   const updateAppointment = useUpdateAppointment();
   const deleteAppointment = useDeleteAppointment();
   const createAppointment = useCreateAppointment();
@@ -111,8 +112,29 @@ function CalendarContent() {
     return acc;
   }, []) || [];
 
+  // Map prestaciones to FullCalendar all-day events
+  const PRESTACION_COLORS: Record<string, string> = {
+    realizada: '#14B8A6',
+    boleta_emitida: '#845ef7',
+    pagada: '#22c55e',
+  };
+  const prestacionEvents = prestaciones?.map((p) => ({
+    id: `prest-${p.id}`,
+    title: `${p.tipo_prestacion} — ${p.institucion_nombre}`,
+    start: p.fecha_prestacion,
+    allDay: true,
+    backgroundColor: PRESTACION_COLORS[p.estado] ?? '#94a3b8',
+    borderColor: PRESTACION_COLORS[p.estado] ?? '#94a3b8',
+    extendedProps: { isPrestacion: true, prestacion: p },
+  })) ?? [];
+
+  const allEvents = [...events, ...prestacionEvents];
+
   // Days that have appointments (for mini calendar highlighting)
-  const bookedDays = appointments?.map((apt) => new Date(apt.fecha_inicio)) || [];
+  const bookedDays = [
+    ...(appointments?.map((apt) => new Date(apt.fecha_inicio)) || []),
+    ...(prestaciones?.map((p) => new Date(p.fecha_prestacion)) || []),
+  ];
 
   const handleSelectDate = (date: Date | undefined) => {
     if (date) {
@@ -404,15 +426,19 @@ function CalendarContent() {
             <CardContent className="pt-0 flex flex-col gap-2">
               <div className="flex items-center gap-2 text-xs">
                 <span className="size-3 rounded-sm bg-primary" />
-                <span>Consultas</span>
+                <span>Citas</span>
               </div>
               <div className="flex items-center gap-2 text-xs">
                 <span className="size-3 rounded-sm" style={{ backgroundColor: '#14B8A6' }} />
-                <span>Cirugías</span>
+                <span>Prestación realizada</span>
               </div>
               <div className="flex items-center gap-2 text-xs">
                 <span className="size-3 rounded-sm" style={{ backgroundColor: '#845ef7' }} />
-                <span>Revisiones</span>
+                <span>Boleta emitida</span>
+              </div>
+              <div className="flex items-center gap-2 text-xs">
+                <span className="size-3 rounded-sm" style={{ backgroundColor: '#22c55e' }} />
+                <span>Prestación pagada</span>
               </div>
             </CardContent>
           </Card>
@@ -487,15 +513,19 @@ function CalendarContent() {
                 <CardContent className="pt-0 flex flex-col gap-2">
                   <div className="flex items-center gap-2 text-xs">
                     <span className="size-3 rounded-sm bg-primary" />
-                    <span>Consultas</span>
+                    <span>Citas</span>
                   </div>
                   <div className="flex items-center gap-2 text-xs">
                     <span className="size-3 rounded-sm" style={{ backgroundColor: '#14B8A6' }} />
-                    <span>Cirugías</span>
+                    <span>Prestación realizada</span>
                   </div>
                   <div className="flex items-center gap-2 text-xs">
                     <span className="size-3 rounded-sm" style={{ backgroundColor: '#845ef7' }} />
-                    <span>Revisiones</span>
+                    <span>Boleta emitida</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="size-3 rounded-sm" style={{ backgroundColor: '#22c55e' }} />
+                    <span>Prestación pagada</span>
                   </div>
                 </CardContent>
               </Card>
@@ -565,7 +595,7 @@ function CalendarContent() {
                 initialView={viewMode}
                 initialDate={selectedDate}
                 headerToolbar={false}
-                events={events}
+                events={allEvents}
                 editable={true}
                 selectable={true}
                 dayMaxEvents={true}
