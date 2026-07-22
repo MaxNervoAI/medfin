@@ -23,6 +23,28 @@ export function createServiceRoleClient() {
   })
 }
 
+/**
+ * Cliente anónimo sin sesión ni cookies, para páginas y APIs públicas
+ * (/calculadora, /directorio). RLS aplica con el rol `anon`: solo ve el
+ * catálogo verificado y la tasa de retención (migración 015).
+ */
+export function createPublicClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  if (!url || !anonKey) return null
+
+  return createSupabaseClient(url, anonKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+    global: {
+      // Next parcha fetch y puede cachear en disco las respuestas de
+      // PostgREST (se vio con resultados vacíos pre-migración 015 que
+      // sobrevivían reinicios). Las consultas públicas van siempre en vivo.
+      fetch: (input, init) => fetch(input, { ...init, cache: 'no-store' }),
+    },
+  })
+}
+
 export async function createClient() {
   // Use JSON file-based DB for local development
   if (process.env.NEXT_PUBLIC_USE_JSON_DB === 'true') {

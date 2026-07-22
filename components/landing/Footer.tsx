@@ -16,6 +16,8 @@ export default function Footer() {
         </Link>
 
         <nav className="flex flex-wrap items-center gap-6" aria-label="Legal">
+          <Link href="/calculadora" className="text-[13px] text-muted-foreground transition-colors hover:text-foreground">Calculadora</Link>
+          <Link href="/directorio" className="text-[13px] text-muted-foreground transition-colors hover:text-foreground">Directorio</Link>
           <Link href="/terminos" className="text-[13px] text-muted-foreground transition-colors hover:text-foreground">Términos</Link>
           <Link href="/privacidad" className="text-[13px] text-muted-foreground transition-colors hover:text-foreground">Privacidad</Link>
           <Link href="/contacto" className="text-[13px] text-muted-foreground transition-colors hover:text-foreground">Contacto</Link>

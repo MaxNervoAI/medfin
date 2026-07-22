@@ -18,7 +18,7 @@ const testimonials: Testimonial[] = [
   },
   {
     quote: 'Trabajo en cuatro centros. Antes usaba cuatro planillas distintas. Ahora tengo todo en un solo lugar y el cálculo de retenciones es automático.',
-    name: 'Dr. [Nombre]',
+    name: 'Ps. [Nombre]',
     role: 'Psicólogo clínico',
     city: 'Viña del Mar',
   },

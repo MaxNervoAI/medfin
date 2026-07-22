@@ -7,7 +7,7 @@ import { QueryProvider } from '@/components/providers/QueryProvider'
 
 export const metadata: Metadata = {
   title: 'Dr Wallet — Finanzas para profesionales de salud',
-  description: 'Controla tus cobranzas, boletas y presupuesto mensual como médico independiente.',
+  description: 'Controla tus cobranzas, boletas y presupuesto mensual como profesional de la salud independiente.',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,

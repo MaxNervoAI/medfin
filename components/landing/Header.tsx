@@ -37,8 +37,10 @@ export default function Header() {
         {/* Nav links */}
         <nav className="hidden items-center gap-7 md:flex" aria-label="Secciones principales">
           {[
-            { href: '#mision', label: 'Misión' },
-            { href: '#como-funciona', label: 'Cómo funciona' },
+            { href: '/#mision', label: 'Misión' },
+            { href: '/#como-funciona', label: 'Cómo funciona' },
+            { href: '/calculadora', label: 'Calculadora' },
+            { href: '/directorio', label: 'Directorio' },
           ].map(({ href, label }) => (
             <a
               key={href}

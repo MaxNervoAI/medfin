@@ -37,7 +37,7 @@ const defaultFeatures: Feature[] = [
   },
   {
     title: 'Seguridad de datos',
-    description: 'Tus datos médicos y financieros están protegidos con encriptación de nivel bancario.',
+    description: 'Tus datos profesionales y financieros están protegidos con encriptación de nivel bancario.',
     icon: <Shield className="w-5 h-5" aria-hidden="true" />,
   },
   {
@@ -49,7 +49,7 @@ const defaultFeatures: Feature[] = [
 
 export default function Features({
   sectionLabel = 'Características',
-  heading = 'Todo lo que necesitas para controlar tus finanzas médicas en una sola plataforma.',
+  heading = 'Todo lo que necesitas para controlar tus finanzas como profesional de la salud, en una sola plataforma.',
   subheading = 'El sistema está roto: cada institución tiene plazos diferentes, y olvidar una fecha significa perder $150K–500K CLP.',
   learnMoreHref = '/login',
   learnMoreText = 'Empezar gratis',

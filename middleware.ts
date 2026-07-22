@@ -7,7 +7,7 @@ export async function middleware(request: NextRequest) {
   // Si las variables de entorno no están configuradas, permitir acceso a landing page y rutas públicas
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
     const { pathname } = request.nextUrl
-    const publicPaths = ['/', '/login', '/auth/callback']
+    const publicPaths = ['/', '/login', '/auth/callback', '/calculadora', '/directorio', '/api/publico', '/manifest.json']
     if (publicPaths.some(p => pathname.startsWith(p))) {
       return supabaseResponse
     }
@@ -49,7 +49,7 @@ export async function middleware(request: NextRequest) {
   const isDebug = isDebugQuery || isJsonDbMode
 
   // Rutas públicas (no requieren autenticación)
-  const publicPaths = ['/', '/login', '/auth/callback']
+  const publicPaths = ['/', '/login', '/auth/callback', '/calculadora', '/directorio', '/api/publico', '/manifest.json']
   if (publicPaths.some(p => pathname === p || pathname.startsWith(p + '/'))) {
     return supabaseResponse
   }

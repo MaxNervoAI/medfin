@@ -123,7 +123,7 @@ export default function LoginClient({ devLoginEnabled = false }: { devLoginEnabl
           </h3>
 
           <p className="mb-6 text-center text-sm text-muted-foreground">
-            Tu plataforma de cobranzas médicas
+            Tu plataforma de cobranzas en salud
           </p>
 
           <div className="space-y-3">
