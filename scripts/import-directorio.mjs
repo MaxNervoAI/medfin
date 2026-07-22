@@ -21,13 +21,15 @@ const APPLY = process.argv.includes('--apply')
 const CKAN = 'https://datos.gob.cl/api/3/action/package_show?id=establecimientos-de-salud-vigentes'
 
 // Tipos del registro oficial que le sirven a un profesional que emite boletas.
+//
+// Laboratorios clínicos (363) y centros de diálisis (110) se dejan FUERA a
+// propósito: son ruido para la mayoría. Quien trabaje en uno puede agregarlo
+// a mano desde el diálogo, donde ambos tipos siguen disponibles.
 const TIPO_MAP = {
   'Hospital':                  ({ publico }) => (publico ? 'hospital_publico' : 'clinica_privada'),
   'Clínica':                   () => 'clinica_privada',
   'Centro de Salud Privado':   () => 'centro_medico',
   'Centro de Especialidades':  () => 'centro_medico',
-  'Laboratorio Clínico':       () => 'laboratorio',
-  'Centro de Diálisis':        () => 'centro_dialisis',
 }
 
 function loadEnv(file) {
@@ -47,9 +49,17 @@ function loadEnv(file) {
 }
 loadEnv('.env.local')
 
+/**
+ * El registro oficial trae espacios dobles y sobrantes
+ * ("Cl\u00ednica  D\u00e1vila Vespucio"). Se colapsan al importar.
+ */
+function limpiarEspacios(texto) {
+  return texto.replace(/\s+/g, ' ').trim()
+}
+
 /** Debe coincidir con la columna generada `nombre_norm` en Postgres. */
 function normalizar(texto) {
-  return texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+  return limpiarEspacios(texto).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
 }
 
 /** Parser CSV mínimo con soporte de comillas dobles. */
@@ -120,11 +130,11 @@ for (const f of filas) {
   const mapear = TIPO_MAP[tipoGlosa]
   if (!mapear) { descartadosTipo++; continue }
 
-  const nombre = (f.EstablecimientoGlosa || '').trim()
+  const nombre = limpiarEspacios(f.EstablecimientoGlosa || '')
   if (!nombre) continue
 
   const sistema = (f.TipoSistemaSaludGlosa || '').trim().toLowerCase()
-  const ciudad = (f.ComunaGlosa || '').trim() || null
+  const ciudad = limpiarEspacios(f.ComunaGlosa || '') || null
 
   // Clave idéntica al índice único (nombre_norm, coalesce(ciudad,''))
   const clave = `${normalizar(nombre)}|${ciudad ?? ''}`
