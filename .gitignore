@@ -52,3 +52,6 @@ CHECKPOINTS.md
 feature_list.json
 init.sh
 CLAUDE.md
+.env*
+!.env.example
+!.env.local.example

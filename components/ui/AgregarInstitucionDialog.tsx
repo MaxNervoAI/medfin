@@ -29,6 +29,8 @@ export const TIPOS_INSTITUCION: { value: InstitucionDirectorioTipo; label: strin
   { value: 'hospital_publico', label: 'Hospital público' },
   { value: 'centro_medico',    label: 'Centro médico' },
   { value: 'red_medica',       label: 'Red médica' },
+  { value: 'laboratorio',      label: 'Laboratorio clínico' },
+  { value: 'centro_dialisis',  label: 'Centro de diálisis' },
   { value: 'otro',             label: 'Otro' },
 ]
 
@@ -100,16 +102,26 @@ export default function AgregarInstitucionDialog({
           ciudad: ciudad.trim() || null,
           region: region || null,
           rut: rut.trim() || null,
+          // La política RLS exige autoría propia y sin verificar: el aporte
+          // solo lo ve su autor hasta que se promueva al catálogo oficial.
           verificada: false,
+          created_by: user.id,
         })
         .select()
         .single()
 
       if (dirError || !dirEntry) {
         console.error('Error al agregar al directorio:', dirError)
-        toast.error('No se pudo guardar la institución', {
-          description: dirError?.message ?? 'Inténtalo nuevamente.',
-        })
+        // 23505 = violación del índice único (nombre + ciudad)
+        const duplicada = dirError?.code === '23505'
+        toast.error(
+          duplicada ? 'Esa institución ya existe' : 'No se pudo guardar la institución',
+          {
+            description: duplicada
+              ? 'Búscala por su nombre en el listado.'
+              : dirError?.message ?? 'Inténtalo nuevamente.',
+          }
+        )
         return
       }
 

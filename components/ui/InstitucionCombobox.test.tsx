@@ -4,22 +4,15 @@ import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import InstitucionCombobox from './InstitucionCombobox'
 
 // Mock Supabase client
-const mockSelect = jest.fn()
+const mockRpc = jest.fn()
 const mockInsert = jest.fn()
 const mockGetUser = jest.fn()
 
 jest.mock('@/lib/supabase/client', () => ({
   createClient: () => ({
+    // La búsqueda usa el RPC `buscar_directorio` (insensible a acentos)
+    rpc: (fn: string, args: unknown) => Promise.resolve(mockRpc(fn, args)),
     from: (table: string) => ({
-      select: () => ({
-        ilike: () => ({
-          order: () => ({
-            order: () => ({
-              limit: () => Promise.resolve(mockSelect()),
-            }),
-          }),
-        }),
-      }),
       insert: (data: unknown) => ({
         select: () => ({
           single: () => Promise.resolve(mockInsert(table, data)),
@@ -109,7 +102,7 @@ describe('InstitucionCombobox', () => {
   })
 
   it('searches and displays results after debounce', async () => {
-    mockSelect.mockReturnValue({ data: mockDirectorioResults, error: null })
+    mockRpc.mockReturnValue({ data: mockDirectorioResults, error: null })
 
     render(
       <InstitucionCombobox
@@ -130,7 +123,7 @@ describe('InstitucionCombobox', () => {
   })
 
   it('groups results: verified first, then community', async () => {
-    mockSelect.mockReturnValue({ data: mockDirectorioResults, error: null })
+    mockRpc.mockReturnValue({ data: mockDirectorioResults, error: null })
 
     render(
       <InstitucionCombobox
@@ -150,7 +143,7 @@ describe('InstitucionCombobox', () => {
   })
 
   it('shows "Agregar" option when query has text', async () => {
-    mockSelect.mockReturnValue({ data: [], error: null })
+    mockRpc.mockReturnValue({ data: [], error: null })
 
     render(
       <InstitucionCombobox
@@ -165,6 +158,50 @@ describe('InstitucionCombobox', () => {
 
     await waitFor(() => {
       expect(screen.getByText(/Agregar.*Mi Clínica Nueva/)).toBeInTheDocument()
+    })
+  })
+
+  it('busca con el RPC insensible a acentos, no con ilike', async () => {
+    mockRpc.mockReturnValue({ data: mockDirectorioResults, error: null })
+
+    render(
+      <InstitucionCombobox
+        value={null}
+        onChange={jest.fn()}
+        userInstituciones={[]}
+      />
+    )
+    fireEvent.focus(screen.getByRole('textbox'))
+    // Sin tilde: antes esto no encontraba "Clínica Alemana"
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'clinica alemana' } })
+    act(() => { jest.advanceTimersByTime(350) })
+
+    await waitFor(() => {
+      expect(mockRpc).toHaveBeenCalledWith('buscar_directorio', {
+        termino: 'clinica alemana',
+        limite: 12,
+      })
+    })
+    expect(await screen.findByText('Clínica Alemana')).toBeInTheDocument()
+  })
+
+  it('no rompe la lista si el RPC falla', async () => {
+    mockRpc.mockReturnValue({ data: null, error: { message: 'boom' } })
+
+    render(
+      <InstitucionCombobox
+        value={null}
+        onChange={jest.fn()}
+        userInstituciones={[]}
+      />
+    )
+    fireEvent.focus(screen.getByRole('textbox'))
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'algo' } })
+    act(() => { jest.advanceTimersByTime(350) })
+
+    // Sigue ofreciendo crearla en vez de quedarse en blanco
+    await waitFor(() => {
+      expect(screen.getByText(/Agregar.*algo/)).toBeInTheDocument()
     })
   })
 
@@ -195,7 +232,7 @@ describe('InstitucionCombobox', () => {
   })
 
   it('always offers the add-institution escape hatch inside the open dropdown', async () => {
-    mockSelect.mockReturnValue({ data: [], error: null })
+    mockRpc.mockReturnValue({ data: [], error: null })
 
     render(
       <InstitucionCombobox
@@ -214,7 +251,7 @@ describe('InstitucionCombobox', () => {
   })
 
   it('opens the full form dialog instead of silently inserting when adding a new name', async () => {
-    mockSelect.mockReturnValue({ data: [], error: null })
+    mockRpc.mockReturnValue({ data: [], error: null })
 
     render(
       <InstitucionCombobox
@@ -241,7 +278,7 @@ describe('InstitucionCombobox', () => {
   it('calls onChange with existing user institution when duplicate directorio_id selected', async () => {
     // The directorio entry has id 'dir-1' (same as directorio_id on user's existing institution)
     const dirEntry = { ...mockDirectorioResults[0], id: 'dir-1', nombre: 'Clínica Las Condes' }
-    mockSelect.mockReturnValue({ data: [dirEntry], error: null })
+    mockRpc.mockReturnValue({ data: [dirEntry], error: null })
     const handleChange = jest.fn()
 
     render(
@@ -266,7 +303,7 @@ describe('InstitucionCombobox', () => {
   })
 
   it('inserts new institution and calls onChange when new directorio entry selected', async () => {
-    mockSelect.mockReturnValue({ data: mockDirectorioResults, error: null })
+    mockRpc.mockReturnValue({ data: mockDirectorioResults, error: null })
     mockInsert.mockReturnValue({
       data: { id: 'inst-new', nombre: 'Clínica Alemana', directorio_id: 'dir-2' },
       error: null,

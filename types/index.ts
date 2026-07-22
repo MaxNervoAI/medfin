@@ -5,6 +5,8 @@ export type InstitucionDirectorioTipo =
   | 'clinica_privada'
   | 'centro_medico'
   | 'red_medica'
+  | 'laboratorio'
+  | 'centro_dialisis'
   | 'otro'
 
 export interface InstitucionDirectorio {
@@ -16,6 +18,10 @@ export interface InstitucionDirectorio {
   tipo: InstitucionDirectorioTipo
   verificada: boolean
   created_at: string
+  /** Generada por Postgres: nombre en minúsculas y sin acentos. */
+  nombre_norm?: string
+  /** Autor del aporte; null en las entradas del registro oficial. */
+  created_by?: string | null
 }
 export type TipoDocumento = 'boleta' | 'factura'
 

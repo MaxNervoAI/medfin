@@ -13,6 +13,8 @@ const TIPO_LABELS: Record<string, string> = {
   clinica_privada:  'Clínica privada',
   centro_medico:    'Centro médico',
   red_medica:       'Red médica',
+  laboratorio:      'Laboratorio clínico',
+  centro_dialisis:  'Centro de diálisis',
   otro:             'Otro',
 }
 
@@ -50,14 +52,12 @@ export default function InstitucionCombobox({
     async (term: string) => {
       if (!term.trim()) { setResults([]); return }
       setLoading(true)
+      // RPC en vez de `ilike`: ignora acentos, así "clinica alemana"
+      // encuentra "Clínica Alemana".
       const { data, error } = await supabase
-        .from('instituciones_directorio')
-        .select('*')
-        .ilike('nombre', `%${term}%`)
-        .order('verificada', { ascending: false })
-        .order('nombre')
-        .limit(12)
-      if (!error) setResults(data ?? [])
+        .rpc('buscar_directorio', { termino: term, limite: 12 })
+      if (error) console.error('Error buscando instituciones:', error)
+      setResults(error ? [] : (data ?? []))
       setLoading(false)
     },
     [supabase]
