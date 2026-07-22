@@ -6,6 +6,21 @@ import { randomUUID } from 'crypto'
 const DATA_DIR = path.join(process.cwd(), '.data')
 const MOCK_USER_ID = 'local-user-id'
 
+/**
+ * Esta ruta es un backend de desarrollo sin autenticación.
+ * Debe estar deshabilitada fuera de desarrollo con JSON DB activo.
+ */
+function isEnabled() {
+  return process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_USE_JSON_DB === 'true'
+}
+
+/** Evita path traversal: el nombre de tabla solo admite [a-z0-9_]. */
+function resolveTable(segments: string[] | undefined): string | null {
+  const table = segments?.[0]
+  if (!table || !/^[a-z0-9_]+$/i.test(table)) return null
+  return table
+}
+
 async function ensureDir() {
   try {
     await fs.mkdir(DATA_DIR, { recursive: true })
@@ -33,8 +48,10 @@ export async function GET(
   request: NextRequest,
   { params }: { params: { path: string[] } }
 ) {
-  const table = params.path?.[0]
-  if (!table) return NextResponse.json({ error: 'No table specified' }, { status: 400 })
+  if (!isEnabled()) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+  const table = resolveTable(params.path)
+  if (!table) return NextResponse.json({ error: 'Invalid table' }, { status: 400 })
 
   const searchParams = request.nextUrl.searchParams
   const column = searchParams.get('column')
@@ -88,8 +105,10 @@ export async function POST(
   request: NextRequest,
   { params }: { params: { path: string[] } }
 ) {
-  const table = params.path?.[0]
-  if (!table) return NextResponse.json({ error: 'No table specified' }, { status: 400 })
+  if (!isEnabled()) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+  const table = resolveTable(params.path)
+  if (!table) return NextResponse.json({ error: 'Invalid table' }, { status: 400 })
 
   const searchParams = request.nextUrl.searchParams
   const upsert = searchParams.get('upsert') === 'true'
@@ -126,8 +145,10 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: { path: string[] } }
 ) {
-  const table = params.path?.[0]
-  if (!table) return NextResponse.json({ error: 'No table specified' }, { status: 400 })
+  if (!isEnabled()) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+  const table = resolveTable(params.path)
+  if (!table) return NextResponse.json({ error: 'Invalid table' }, { status: 400 })
 
   const searchParams = request.nextUrl.searchParams
   const column = searchParams.get('column')
@@ -153,8 +174,10 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: { path: string[] } }
 ) {
-  const table = params.path?.[0]
-  if (!table) return NextResponse.json({ error: 'No table specified' }, { status: 400 })
+  if (!isEnabled()) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+  const table = resolveTable(params.path)
+  if (!table) return NextResponse.json({ error: 'Invalid table' }, { status: 400 })
 
   const searchParams = request.nextUrl.searchParams
   const column = searchParams.get('column')
