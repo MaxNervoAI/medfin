@@ -26,6 +26,8 @@ const customJestConfig = {
     '**/__tests__/**/*.[jt]s?(x)',
     '**/?(*.)+(spec|test).[jt]s?(x)',
   ],
+  // Playwright specs live in /e2e and must run via `npm run test:e2e`
+  testPathIgnorePatterns: ['<rootDir>/e2e/', '<rootDir>/.next/', '<rootDir>/node_modules/'],
   coverageThreshold: {
     global: {
       branches: 70,
