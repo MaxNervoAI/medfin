@@ -4,7 +4,9 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { Institucion, InstitucionDirectorio } from '@/types'
 import { cn } from '@/lib/utils'
-import { Search, Plus, ShieldCheck, Users, Building2, Loader2 } from 'lucide-react'
+import { Search, Plus, ShieldCheck, Users, Building2, Loader2, HelpCircle } from 'lucide-react'
+import { toast } from 'sonner'
+import AgregarInstitucionDialog from '@/components/ui/AgregarInstitucionDialog'
 
 const TIPO_LABELS: Record<string, string> = {
   hospital_publico: 'Hospital público',
@@ -35,6 +37,7 @@ export default function InstitucionCombobox({
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [dialogOpen, setDialogOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -91,7 +94,10 @@ export default function InstitucionCombobox({
 
       // Insert into user's instituciones
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
+      if (!user) {
+        toast.error('Tu sesión expiró. Vuelve a iniciar sesión.')
+        return
+      }
 
       const { data, error } = await supabase
         .from('instituciones')
@@ -107,6 +113,9 @@ export default function InstitucionCombobox({
 
       if (error || !data) {
         console.error('Error adding institution:', error)
+        toast.error('No se pudo agregar la institución', {
+          description: error?.message ?? 'Inténtalo nuevamente.',
+        })
         return
       }
       onChange(data)
@@ -117,48 +126,10 @@ export default function InstitucionCombobox({
     }
   }
 
-  async function handleAddNew() {
-    const nombre = query.trim()
-    if (!nombre) return
-    setSaving(true)
-    try {
-      // Insert into shared directory as community suggestion
-      const { data: dirEntry, error: dirError } = await supabase
-        .from('instituciones_directorio')
-        .insert({ nombre, verificada: false })
-        .select()
-        .single()
-
-      if (dirError || !dirEntry) {
-        console.error('Error adding to directorio:', dirError)
-        return
-      }
-
-      // Insert into user's instituciones
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-
-      const { data, error } = await supabase
-        .from('instituciones')
-        .insert({
-          user_id: user.id,
-          nombre,
-          activa: true,
-          directorio_id: dirEntry.id,
-        })
-        .select('id, nombre, directorio_id')
-        .single()
-
-      if (error || !data) {
-        console.error('Error adding institution:', error)
-        return
-      }
-      onChange(data)
-    } finally {
-      setSaving(false)
-      setOpen(false)
-      setQuery('')
-    }
+  /** Abre el formulario completo, prellenado con lo que el usuario escribió. */
+  function handleAddNew() {
+    setOpen(false)
+    setDialogOpen(true)
   }
 
   const verified = results.filter(r => r.verificada)
@@ -186,9 +157,11 @@ export default function InstitucionCombobox({
           className="flex-1 bg-transparent outline-none placeholder:text-muted-foreground"
           onFocus={() => {
             setQuery(selectedNombre)
-            if (selectedNombre.trim()) setOpen(true)
+            setOpen(true)
           }}
-          onChange={e => setQuery(e.target.value)}
+          // `value` depende de `open`; abrir aquí también evita que el input
+          // quede congelado si el dropdown se cerró por cualquier motivo.
+          onChange={e => { setQuery(e.target.value); setOpen(true) }}
           onKeyDown={e => {
             if (e.key === 'Escape') { setOpen(false); inputRef.current?.blur() }
           }}
@@ -196,6 +169,19 @@ export default function InstitucionCombobox({
         />
         {loading && <Loader2 className="size-3.5 text-muted-foreground animate-spin shrink-0" />}
       </div>
+
+      {/* Sin instituciones aún: atajo visible sin abrir el buscador */}
+      {userInstituciones.length === 0 && !open && (
+        <button
+          type="button"
+          onClick={() => setDialogOpen(true)}
+          disabled={disabled || saving}
+          className="mt-1.5 flex items-center gap-1.5 text-xs text-primary font-medium hover:underline disabled:opacity-50"
+        >
+          <Plus className="size-3 shrink-0" />
+          ¿No ves tu lugar de trabajo? Agrégalo aquí
+        </button>
+      )}
 
       {/* Dropdown */}
       {open && (
@@ -240,7 +226,7 @@ export default function InstitucionCombobox({
               </div>
             )}
 
-            {/* Add new option */}
+            {/* Add new option — con el nombre ya escrito */}
             {showAddNew && (
               <button
                 type="button"
@@ -251,9 +237,31 @@ export default function InstitucionCombobox({
                 Agregar &ldquo;{query.trim()}&rdquo;
               </button>
             )}
+
+            {/* Escape hatch — siempre visible */}
+            {!saving && (
+              <button
+                type="button"
+                onClick={handleAddNew}
+                className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-muted-foreground border-t border-border hover:bg-muted/50 hover:text-foreground transition-colors"
+              >
+                <HelpCircle className="size-4 shrink-0" />
+                ¿No ves tu lugar de trabajo? Agrégalo aquí
+              </button>
+            )}
           </div>
         </div>
       )}
+
+      <AgregarInstitucionDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        nombreInicial={query.trim()}
+        onCreated={inst => {
+          setQuery('')
+          onChange(inst)
+        }}
+      />
     </div>
   )
 }

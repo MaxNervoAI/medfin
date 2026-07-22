@@ -168,6 +168,76 @@ describe('InstitucionCombobox', () => {
     })
   })
 
+  it('shows the "no ves tu lugar" shortcut when the user has no institutions', () => {
+    render(
+      <InstitucionCombobox
+        value={null}
+        onChange={jest.fn()}
+        userInstituciones={[]}
+      />
+    )
+    expect(
+      screen.getByText('¿No ves tu lugar de trabajo? Agrégalo aquí')
+    ).toBeInTheDocument()
+  })
+
+  it('hides the shortcut once the user already has institutions', () => {
+    render(
+      <InstitucionCombobox
+        value={null}
+        onChange={jest.fn()}
+        userInstituciones={mockUserInstituciones}
+      />
+    )
+    expect(
+      screen.queryByText('¿No ves tu lugar de trabajo? Agrégalo aquí')
+    ).not.toBeInTheDocument()
+  })
+
+  it('always offers the add-institution escape hatch inside the open dropdown', async () => {
+    mockSelect.mockReturnValue({ data: [], error: null })
+
+    render(
+      <InstitucionCombobox
+        value={null}
+        onChange={jest.fn()}
+        userInstituciones={mockUserInstituciones}
+      />
+    )
+    fireEvent.focus(screen.getByRole('textbox'))
+
+    await waitFor(() => {
+      expect(
+        screen.getByText('¿No ves tu lugar de trabajo? Agrégalo aquí')
+      ).toBeInTheDocument()
+    })
+  })
+
+  it('opens the full form dialog instead of silently inserting when adding a new name', async () => {
+    mockSelect.mockReturnValue({ data: [], error: null })
+
+    render(
+      <InstitucionCombobox
+        value={null}
+        onChange={jest.fn()}
+        userInstituciones={[]}
+      />
+    )
+    fireEvent.focus(screen.getByRole('textbox'))
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'Mi Clínica Nueva' } })
+    act(() => { jest.advanceTimersByTime(350) })
+
+    await waitFor(() => screen.getByText(/Agregar.*Mi Clínica Nueva/))
+    fireEvent.click(screen.getByText(/Agregar.*Mi Clínica Nueva/))
+
+    // El diálogo se abre con el nombre prellenado; no se inserta nada todavía
+    await waitFor(() => {
+      expect(screen.getByRole('dialog')).toBeInTheDocument()
+    })
+    expect(screen.getByLabelText('Nombre *')).toHaveValue('Mi Clínica Nueva')
+    expect(mockInsert).not.toHaveBeenCalled()
+  })
+
   it('calls onChange with existing user institution when duplicate directorio_id selected', async () => {
     // The directorio entry has id 'dir-1' (same as directorio_id on user's existing institution)
     const dirEntry = { ...mockDirectorioResults[0], id: 'dir-1', nombre: 'Clínica Las Condes' }

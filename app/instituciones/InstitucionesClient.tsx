@@ -15,6 +15,7 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import InstitucionCombobox from '@/components/ui/InstitucionCombobox'
 import TipoPrestacionCombobox from '@/components/ui/TipoPrestacionCombobox'
+import AgregarInstitucionDialog from '@/components/ui/AgregarInstitucionDialog'
 
 interface Props {
   instituciones: Institucion[]
@@ -28,6 +29,7 @@ export default function InstitucionesClient({ instituciones: init, reglas: initR
   const [reglas, setReglas] = useState(initReglas)
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [showFormInstitucion, setShowFormInstitucion] = useState(false)
+  const [dialogNuevaOpen, setDialogNuevaOpen] = useState(false)
   const [showFormRegla, setShowFormRegla] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -102,6 +104,16 @@ export default function InstitucionesClient({ instituciones: init, reglas: initR
 
   const reglasDeInstitucion = (id: string) => reglas.filter(r => r.institucion_id === id)
 
+  /** Agrega la institución a la lista local sin duplicar y cierra los formularios. */
+  function agregarInstitucionLocal(inst: Pick<Institucion, 'id' | 'nombre' | 'directorio_id'>) {
+    setInstituciones(prev =>
+      prev.find(i => i.id === inst.id)
+        ? prev
+        : [...prev, inst as Institucion].sort((a, b) => a.nombre.localeCompare(b.nombre))
+    )
+    setShowFormInstitucion(false)
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
@@ -119,20 +131,32 @@ export default function InstitucionesClient({ instituciones: init, reglas: initR
         <Card className="border-primary/30 bg-primary/5">
           <CardHeader className="pb-3">
             <p className="text-sm font-semibold text-foreground">Agregar institución</p>
+            <p className="text-xs text-muted-foreground">
+              Búscala en el directorio o créala manualmente
+            </p>
           </CardHeader>
           <CardContent className="flex flex-col gap-3">
             <InstitucionCombobox
               value={null}
-              onChange={inst => {
-                if (!instituciones.find(i => i.id === inst.id)) {
-                  setInstituciones(prev =>
-                    [...prev, inst as Institucion].sort((a, b) => a.nombre.localeCompare(b.nombre))
-                  )
-                }
-                setShowFormInstitucion(false)
-              }}
+              onChange={agregarInstitucionLocal}
               userInstituciones={instituciones.map(i => ({ id: i.id, nombre: i.nombre, directorio_id: i.directorio_id ?? null }))}
             />
+
+            <div className="flex items-center gap-3">
+              <Separator className="flex-1" />
+              <span className="text-xs text-muted-foreground">o</span>
+              <Separator className="flex-1" />
+            </div>
+
+            <Button
+              variant="secondary"
+              size="sm"
+              className="w-full"
+              onClick={() => setDialogNuevaOpen(true)}
+            >
+              <Plus className="size-3.5" /> Crear institución nueva
+            </Button>
+
             {error && (
               <Alert variant="destructive">
                 <AlertDescription>{error}</AlertDescription>
@@ -150,11 +174,16 @@ export default function InstitucionesClient({ instituciones: init, reglas: initR
         <EmptyState
           icon={<Building2 />}
           title="Sin instituciones"
-          description="Agrega tus clínicas u hospitales"
+          description="Agrega tus clínicas u hospitales para empezar a registrar prestaciones"
           action={
-            <Button size="sm" onClick={() => setShowFormInstitucion(true)}>
-              <Plus className="size-3.5" /> Agregar institución
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Button size="sm" onClick={() => setShowFormInstitucion(true)}>
+                <Plus className="size-3.5" /> Buscar institución
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => setDialogNuevaOpen(true)}>
+                Crear una nueva
+              </Button>
+            </div>
           }
         />
       ) : (
@@ -329,6 +358,12 @@ export default function InstitucionesClient({ instituciones: init, reglas: initR
           })}
         </div>
       )}
+
+      <AgregarInstitucionDialog
+        open={dialogNuevaOpen}
+        onOpenChange={setDialogNuevaOpen}
+        onCreated={agregarInstitucionLocal}
+      />
     </div>
   )
 }
