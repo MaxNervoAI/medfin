@@ -5,14 +5,34 @@ import { motion } from 'framer-motion'
 import { createBrowserClient } from '@supabase/ssr'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Wrench } from 'lucide-react'
 import { toast } from 'sonner'
 
-export default function LoginClient() {
+export default function LoginClient({ devLoginEnabled = false }: { devLoginEnabled?: boolean }) {
   const [isSignUp, setIsSignUp] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+
+  /** Solo desarrollo: inicia sesión real con el usuario de pruebas. */
+  async function handleDevLogin() {
+    setLoading(true)
+    try {
+      const res = await fetch('/api/dev-login', { method: 'POST' })
+      const body = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        toast.error(body.error || 'No se pudo entrar en modo desarrollo', {
+          description: body.hint ?? body.details,
+        })
+        setLoading(false)
+        return
+      }
+      window.location.href = '/dashboard'
+    } catch {
+      toast.error('No se pudo conectar con el servidor')
+      setLoading(false)
+    }
+  }
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -182,6 +202,17 @@ export default function LoginClient() {
               </svg>
               Continuar con Google
             </button>
+
+            {devLoginEnabled && (
+              <button
+                onClick={handleDevLogin}
+                disabled={loading}
+                className="flex h-9 w-full items-center justify-center gap-2 rounded-md border border-dashed border-amber-500/60 bg-amber-500/5 text-sm font-medium text-amber-700 transition-colors hover:bg-amber-500/10 disabled:opacity-50 disabled:cursor-not-allowed dark:text-amber-400"
+              >
+                <Wrench className="h-3.5 w-3.5" />
+                Entrar como usuario de prueba (solo dev)
+              </button>
+            )}
           </div>
 
           <p className="mt-4 text-center text-xs text-muted-foreground">

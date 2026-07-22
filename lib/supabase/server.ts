@@ -29,6 +29,14 @@ export async function createClient() {
     return createJsonDbClient()
   }
 
+  return createCookieClient()
+}
+
+/**
+ * Cliente Supabase real respaldado por cookies, sin la rama de JSON DB.
+ * Úsalo cuando necesites la API de auth completa (por ejemplo signInWithPassword).
+ */
+export async function createCookieClient() {
   const cookieStore = await cookies()
 
   return createServerClient(
