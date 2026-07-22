@@ -1,6 +1,6 @@
 export const dynamic = 'force-dynamic'
 
-import { createClient } from '@/lib/supabase/server'
+import { createServiceRoleClient } from '@/lib/supabase/server'
 import { Resend } from 'resend'
 import { generarAlertas } from '@/lib/utils'
 import type { Prestacion } from '@/types'
@@ -12,11 +12,12 @@ export async function GET(request: Request) {
   const authHeader = request.headers.get('authorization')
   const secret = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null
 
-  if (!secret || secret !== process.env.CRON_SECRET) {
+  if (!process.env.CRON_SECRET || !secret || secret !== process.env.CRON_SECRET) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const supabase = await createClient()
+  // El cron no tiene sesión: con el cliente anónimo, RLS devolvería 0 perfiles.
+  const supabase = createServiceRoleClient()
 
   // Obtener todos los perfiles con email
   const { data: profiles } = await supabase
